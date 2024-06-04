@@ -13,7 +13,7 @@ type MockUserService struct {
 	u User
 }
 
-func (us *MockUserService) CreateUser(u User) (int, error) {
+func (us *MockUserService) CreateUser(u User) (int64, error) {
 	return 1, nil
 }
 

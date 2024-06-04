@@ -13,7 +13,7 @@ var (
 )
 
 type UserServiceForAuth interface {
-	CreateUser(User) (int, error)
+	CreateUser(User) (int64, error)
 	GetPasswordByUsername(string) (string, error)
 	GetUserUUIDByUsername(string) (string, error)
 }
