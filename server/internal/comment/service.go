@@ -1,9 +1,9 @@
 package comment
 
-type commentService struct {
-	commentRepo *commentRepository
+type CommentService struct {
+	commentRepo *CommentRepository
 }
 
-func NewcommentService(commRepo *commentRepository) *commentService {
-	return &commentService{commRepo}
+func NewcommentService(commRepo *CommentRepository) *CommentService {
+	return &CommentService{commRepo}
 }
