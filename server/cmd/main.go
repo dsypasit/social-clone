@@ -27,6 +27,9 @@ func main() {
 	router = router.PathPrefix("/api/v1").Subrouter()
 
 	user.RegisterUserRouter(router, usrHandler)
+	router.HandleFunc("/healtcheck", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
 
 	// slogger := logger.NewLogger()
 	zlog, _ := zap.NewProduction()

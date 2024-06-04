@@ -1,8 +1,17 @@
 package auth
 
-import "github.com/gorilla/mux"
+import (
+	"net/http"
 
-func RegisterAuthRouter(router *mux.Router, authHandler *AuthHandler) {
-	router.HandleFunc("/login", authHandler.Login)
-	router.HandleFunc("/signup", authHandler.Signup)
+	"github.com/gorilla/mux"
+)
+
+type AuthHandlerInterface interface {
+	Login(http.ResponseWriter, *http.Request)
+	Signup(http.ResponseWriter, *http.Request)
+}
+
+func RegisterAuthRouter(router *mux.Router, authHandler AuthHandlerInterface) {
+	router.HandleFunc("/login", authHandler.Login).Methods(http.MethodPost)
+	router.HandleFunc("/signup", authHandler.Signup).Methods(http.MethodPost)
 }

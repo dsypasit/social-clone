@@ -1,6 +1,6 @@
-package commend
+package comment
 
-type Commend struct {
+type comment struct {
 	ID        int    `json:"id"`
 	UUID      string `json:"uuid"`
 	Content   string `json:"content"`

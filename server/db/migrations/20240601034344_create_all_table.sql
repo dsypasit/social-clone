@@ -1,8 +1,8 @@
 -- migrate:up
-CREATE TABLE IF NOT EXISTS client (
+CREATE TABLE IF NOT EXISTS app_user (
   id SERIAL PRIMARY KEY,
   uuid uuid UNIQUE, -- Consider adding UNIQUE constraint
-  username varchar(25) NOT NULL,
+  app_username varchar(25) NOT NULL,
   password varchar(250) NOT NULL,
   email varchar(250),
   gender varchar(10),
@@ -18,8 +18,8 @@ CREATE TABLE IF NOT EXISTS follows (
   followed_id int NOT NULL,
   created_at timestamp DEFAULT current_timestamp,
 
-  FOREIGN KEY(follower_id) REFERENCES client(id),
-  FOREIGN KEY(followed_id) REFERENCES client(id)
+  FOREIGN KEY(follower_id) REFERENCES app_user(id),
+  FOREIGN KEY(followed_id) REFERENCES app_user(id)
 );
 
 CREATE TABLE IF NOT EXISTS visibility_type (
@@ -33,11 +33,11 @@ CREATE TABLE IF NOT EXISTS post (
   content text,
   num_like int,
   visibility_type_id int,
-  client_id int,
+  app_user_id int,
   deleted_at date,
   updated_at timestamp DEFAULT current_timestamp,
 
-  FOREIGN KEY(client_id) REFERENCES client(id),
+  FOREIGN KEY(app_user_id) REFERENCES app_user(id),
   FOREIGN KEY(visibility_type_id) REFERENCES visibility_type(id)
 );
 
@@ -54,15 +54,15 @@ CREATE TABLE IF NOT EXISTS comment (
   id SERIAL PRIMARY KEY,
   uuid uuid UNIQUE, -- Consider adding UNIQUE constraint
   content text,
-  client_id int,
+  app_user_id int,
   post_id int,
 
-  FOREIGN KEY(client_id) REFERENCES client(id),
+  FOREIGN KEY(app_user_id) REFERENCES app_user(id),
   FOREIGN KEY(post_id) REFERENCES post(id)
 );
 
 -- migrate:down
-DROP TABLE IF EXISTS client;
+DROP TABLE IF EXISTS app_user;
 DROP TABLE IF EXISTS post;
 DROP TABLE IF EXISTS visibility_type;
 DROP TABLE IF EXISTS comment;

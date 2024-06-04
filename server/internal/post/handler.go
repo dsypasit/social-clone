@@ -1,12 +1,12 @@
 package post
 
-import "github.com/dsypasit/social-clone/server/internal/commend"
+import "github.com/dsypasit/social-clone/server/internal/comment"
 
 type PostHandler struct {
 	postService    *PostService
-	commendService *commend.CommendService
+	commentService *comment.commentService
 }
 
-func NewPostHandler(postService *PostService, commendService *commend.CommendService) *PostHandler {
-	return &PostHandler{postService, commendService}
+func NewPostHandler(postService *PostService, commentService *comment.commentService) *PostHandler {
+	return &PostHandler{postService, commentService}
 }

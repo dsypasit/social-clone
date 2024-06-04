@@ -14,13 +14,13 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
--- Name: client; Type: TABLE; Schema: public; Owner: -
+-- Name: app_user; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public.client (
+CREATE TABLE public.app_user (
     id integer NOT NULL,
     uuid uuid,
-    username character varying(25) NOT NULL,
+    app_username character varying(25) NOT NULL,
     password character varying(250) NOT NULL,
     email character varying(250),
     gender character varying(10),
@@ -32,10 +32,10 @@ CREATE TABLE public.client (
 
 
 --
--- Name: client_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+-- Name: app_user_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
-CREATE SEQUENCE public.client_id_seq
+CREATE SEQUENCE public.app_user_id_seq
     AS integer
     START WITH 1
     INCREMENT BY 1
@@ -45,10 +45,10 @@ CREATE SEQUENCE public.client_id_seq
 
 
 --
--- Name: client_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+-- Name: app_user_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
-ALTER SEQUENCE public.client_id_seq OWNED BY public.client.id;
+ALTER SEQUENCE public.app_user_id_seq OWNED BY public.app_user.id;
 
 
 --
@@ -59,8 +59,10 @@ CREATE TABLE public.comment (
     id integer NOT NULL,
     uuid uuid,
     content text,
-    client_id integer,
-    post_id integer
+    app_user_id integer,
+    post_id integer,
+    updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+    deleted_at date
 );
 
 
@@ -126,7 +128,7 @@ CREATE TABLE public.post (
     content text,
     num_like integer,
     visibility_type_id integer,
-    client_id integer,
+    app_user_id integer,
     deleted_at date,
     updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP
 );
@@ -224,10 +226,10 @@ ALTER SEQUENCE public.visibility_type_id_seq OWNED BY public.visibility_type.id;
 
 
 --
--- Name: client id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: app_user id; Type: DEFAULT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.client ALTER COLUMN id SET DEFAULT nextval('public.client_id_seq'::regclass);
+ALTER TABLE ONLY public.app_user ALTER COLUMN id SET DEFAULT nextval('public.app_user_id_seq'::regclass);
 
 
 --
@@ -266,19 +268,19 @@ ALTER TABLE ONLY public.visibility_type ALTER COLUMN id SET DEFAULT nextval('pub
 
 
 --
--- Name: client client_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: app_user app_user_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.client
-    ADD CONSTRAINT client_pkey PRIMARY KEY (id);
+ALTER TABLE ONLY public.app_user
+    ADD CONSTRAINT app_user_pkey PRIMARY KEY (id);
 
 
 --
--- Name: client client_uuid_key; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: app_user app_user_uuid_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.client
-    ADD CONSTRAINT client_uuid_key UNIQUE (uuid);
+ALTER TABLE ONLY public.app_user
+    ADD CONSTRAINT app_user_uuid_key UNIQUE (uuid);
 
 
 --
@@ -354,11 +356,11 @@ ALTER TABLE ONLY public.visibility_type
 
 
 --
--- Name: comment comment_client_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: comment comment_app_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.comment
-    ADD CONSTRAINT comment_client_id_fkey FOREIGN KEY (client_id) REFERENCES public.client(id);
+    ADD CONSTRAINT comment_app_user_id_fkey FOREIGN KEY (app_user_id) REFERENCES public.app_user(id);
 
 
 --
@@ -374,7 +376,7 @@ ALTER TABLE ONLY public.comment
 --
 
 ALTER TABLE ONLY public.follows
-    ADD CONSTRAINT follows_followed_id_fkey FOREIGN KEY (followed_id) REFERENCES public.client(id);
+    ADD CONSTRAINT follows_followed_id_fkey FOREIGN KEY (followed_id) REFERENCES public.app_user(id);
 
 
 --
@@ -382,15 +384,15 @@ ALTER TABLE ONLY public.follows
 --
 
 ALTER TABLE ONLY public.follows
-    ADD CONSTRAINT follows_follower_id_fkey FOREIGN KEY (follower_id) REFERENCES public.client(id);
+    ADD CONSTRAINT follows_follower_id_fkey FOREIGN KEY (follower_id) REFERENCES public.app_user(id);
 
 
 --
--- Name: post post_client_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: post post_app_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.post
-    ADD CONSTRAINT post_client_id_fkey FOREIGN KEY (client_id) REFERENCES public.client(id);
+    ADD CONSTRAINT post_app_user_id_fkey FOREIGN KEY (app_user_id) REFERENCES public.app_user(id);
 
 
 --
@@ -419,4 +421,5 @@ ALTER TABLE ONLY public.post
 --
 
 INSERT INTO public.schema_migrations (version) VALUES
-    ('20240601034344');
+    ('20240601034344'),
+    ('20240601154833');
