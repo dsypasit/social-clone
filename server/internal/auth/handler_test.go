@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -30,8 +29,6 @@ func (m *MockAuthService) Login(u User) (string, error) {
 		return "", errors.New("error")
 	}
 	if m.user.Password != u.Password {
-		log.Println(m.user.Password)
-		log.Println(u.Password)
 		return "", ErrInvalidPassword
 	}
 	return "token", nil
