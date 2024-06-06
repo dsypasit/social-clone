@@ -12,8 +12,8 @@ func SendJson(w http.ResponseWriter, data interface{}, statusCode int) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-
-	w.Header().Set("Content-Type", "application/json")
+	// Set Content-Type before writing
+	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
 	w.Write(jsonData)
 }

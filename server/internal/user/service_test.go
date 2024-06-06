@@ -24,6 +24,10 @@ func (m *MockUserRepo) CreateUser(newUser UserCreated) (int64, error) {
 	return 1, nil
 }
 
+func (m *MockUserRepo) GetUserUUIDByUsername(uname string) (string, error) {
+	return "da198c46-5b53-4988-986c-00df8f0a4086", nil
+}
+
 func TestServiceGetUserByUUID(t *testing.T) {
 	want := User{
 		ID:        1,
@@ -108,4 +112,15 @@ func TestServiceCreateUser(t *testing.T) {
 			assert.Equalf(t, v.want, actual, "Want id %v but got %v", v.want, actual)
 		})
 	}
+}
+
+func TestServiceGetUserUUIDByUsername(t *testing.T) {
+	want := "da198c46-5b53-4988-986c-00df8f0a4086"
+	input := "asdf"
+
+	mRepo := MockUserRepo{}
+	us := NewUserService(&mRepo)
+	uuid, err := us.GetUserUUIDByUsername(input)
+	assert.Equal(t, nil, err, "Unexpected error: %v", err)
+	assert.Equal(t, want, uuid, "Want %v but got %v", want, uuid)
 }

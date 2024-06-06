@@ -4,6 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"github.com/dsypasit/social-clone/server/internal/share/util"
+	"github.com/dsypasit/social-clone/server/internal/user"
 )
 
 type AuthHandler struct {
@@ -11,7 +14,7 @@ type AuthHandler struct {
 }
 
 type AuthServiceInterface interface {
-	Signup(u User) (string, error)
+	Signup(u user.UserCreated) (string, error)
 	Login(u User) (string, error)
 }
 
@@ -22,60 +25,49 @@ func NewAuthHandler(authService AuthServiceInterface) *AuthHandler {
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var loginedUser User
 	if err := json.NewDecoder(r.Body).Decode(&loginedUser); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{"message": "invalid structure format"})
+		util.SendJson(w, map[string]string{"message": "invalid structure format"}, http.StatusBadRequest)
 		return
 	}
 	var empty User
 	if loginedUser == empty {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{"message": "invalid structure format"})
+		util.SendJson(w, map[string]string{"message": "invalid structure format"}, http.StatusBadRequest)
 		return
 	}
 	if loginedUser.Username == "" || loginedUser.Password == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{"message": "username or password should not empty"})
+		util.SendJson(w, map[string]string{"message": "username or password empty or invalid email format"}, http.StatusBadRequest)
 		return
 	}
 	token, err := h.authService.Login(loginedUser)
 	if err != nil {
 		if err == ErrInvalidPassword {
-			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(map[string]string{"message": "invalid password"})
+			util.SendJson(w, map[string]string{"message": "invalid password"}, http.StatusBadRequest)
 			return
 		}
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{"message": fmt.Sprintf("%v", err)})
+		util.SendJson(w, map[string]string{"error": err.Error()}, http.StatusInternalServerError)
 		return
 	}
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{"token": token})
+	util.SendJson(w, map[string]string{"token": token}, http.StatusOK)
 }
 
 func (h *AuthHandler) Signup(w http.ResponseWriter, r *http.Request) {
-	var newUser User
+	var newUser user.UserCreated
 	if err := json.NewDecoder(r.Body).Decode(&newUser); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{"message": "invalid structure format"})
+		util.SendJson(w, map[string]string{"message": "invalid structure format"}, http.StatusBadRequest)
 		return
 	}
-	var empty User
+	var empty user.UserCreated
 	if newUser == empty {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{"message": "invalid structure format"})
+		util.SendJson(w, map[string]string{"message": "invalid structure format"}, http.StatusBadRequest)
 		return
 	}
-	if newUser.Username == "" || newUser.Password == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]string{"message": "username or password should not empty"})
+	if newUser.Username == "" || newUser.Password == "" || !util.ValidateEmail(newUser.Email) {
+		util.SendJson(w, map[string]string{"message": "username or password empty or invalid email format"}, http.StatusBadRequest)
 		return
 	}
 	token, err := h.authService.Signup(newUser)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{"message": fmt.Sprintf("%v", err)})
+		util.SendJson(w, map[string]string{"message": fmt.Sprintf("%v", err)}, http.StatusInternalServerError)
 		return
 	}
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(map[string]string{"token": token})
+	util.SendJson(w, map[string]string{"token": token}, http.StatusCreated)
 }

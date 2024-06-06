@@ -12,6 +12,7 @@ type AuthHandlerInterface interface {
 }
 
 func RegisterAuthRouter(router *mux.Router, authHandler AuthHandlerInterface) {
-	router.HandleFunc("/login", authHandler.Login).Methods(http.MethodPost)
-	router.HandleFunc("/signup", authHandler.Signup).Methods(http.MethodPost)
+	authRouter := router.PathPrefix("/auth").Subrouter()
+	authRouter.HandleFunc("/login", authHandler.Login).Methods(http.MethodPost)
+	authRouter.HandleFunc("/signup", authHandler.Signup).Methods(http.MethodPost)
 }
