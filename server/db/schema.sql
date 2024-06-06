@@ -422,4 +422,5 @@ ALTER TABLE ONLY public.post
 
 INSERT INTO public.schema_migrations (version) VALUES
     ('20240601034344'),
-    ('20240601154833');
+    ('20240601154833'),
+    ('20240606122747');
