@@ -66,6 +66,10 @@ func (h *AuthHandler) Signup(w http.ResponseWriter, r *http.Request) {
 	}
 	token, err := h.authService.Signup(newUser)
 	if err != nil {
+		if err == user.ErrDupUsername {
+			util.SendJson(w, map[string]string{"message": "duplicate username"}, http.StatusBadRequest)
+			return
+		}
 		util.SendJson(w, map[string]string{"message": fmt.Sprintf("%v", err)}, http.StatusInternalServerError)
 		return
 	}

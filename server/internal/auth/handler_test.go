@@ -15,19 +15,19 @@ import (
 
 type MockAuthService struct {
 	user  User
-	isErr bool
+	isErr error
 }
 
 func (m *MockAuthService) Signup(u user.UserCreated) (string, error) {
-	if m.isErr {
-		return "", errors.New("error")
+	if m.isErr != nil {
+		return "", m.isErr
 	}
 	return "token", nil
 }
 
 func (m *MockAuthService) Login(u User) (string, error) {
-	if m.isErr {
-		return "", errors.New("error")
+	if m.isErr != nil {
+		return "", m.isErr
 	}
 	if m.user.Password != u.Password {
 		return "", ErrInvalidPassword
@@ -75,12 +75,13 @@ func TestSignup_ServiceNotWorking(t *testing.T) {
 	testTable := []struct {
 		title      string
 		input      io.Reader
-		isErr      bool
+		serviceErr error
 		wantStatus int
 		wantBody   map[string]string
 	}{
-		{"should internal error cause service not working", bytes.NewReader([]byte("{\"username\":\"abc\", \"password\":\"abc\", \"email\": \"a@gmail.com\"}")), true, http.StatusInternalServerError, map[string]string{"message": "error"}},
-		{"should get token", bytes.NewReader([]byte("{\"username\":\"abc\", \"password\":\"abcd\", \"email\": \"a@gmail.com\"}")), false, http.StatusCreated, map[string]string{"token": "token"}},
+		{"should internal error cause service not working", bytes.NewReader([]byte("{\"username\":\"abc\", \"password\":\"abc\", \"email\": \"a@gmail.com\"}")), errors.New("error"), http.StatusInternalServerError, map[string]string{"message": "error"}},
+		{"should bad request cause duplicate user", bytes.NewReader([]byte("{\"username\":\"abc\", \"password\":\"asdf\", \"email\":\"a@gmail.com\"}")), user.ErrDupUsername, http.StatusBadRequest, map[string]string{"message": "duplicate username"}},
+		{"should get token", bytes.NewReader([]byte("{\"username\":\"abc\", \"password\":\"abcd\", \"email\": \"a@gmail.com\"}")), nil, http.StatusCreated, map[string]string{"token": "token"}},
 	}
 
 	for _, v := range testTable {
@@ -90,7 +91,7 @@ func TestSignup_ServiceNotWorking(t *testing.T) {
 
 			rec := httptest.NewRecorder()
 
-			mockService := MockAuthService{User{}, v.isErr}
+			mockService := MockAuthService{User{}, v.serviceErr}
 			authHandler := NewAuthHandler(&mockService)
 			authHandler.Signup(rec, req)
 
@@ -146,14 +147,14 @@ func TestLogin_Service(t *testing.T) {
 	testTable := []struct {
 		title       string
 		input       io.Reader
-		isErr       bool
+		isErr       error
 		initialUser User
 		wantStatus  int
 		wantBody    map[string]string
 	}{
-		{"should bad request cause password invalid", bytes.NewReader([]byte("{\"username\":\"abc\", \"password\":\"abc\"}")), false, User{Password: "abcd"}, http.StatusBadRequest, map[string]string{"message": "invalid password"}},
-		{"should internal error cause service not working", bytes.NewReader([]byte("{\"username\":\"abc\", \"password\":\"abc\", \"email\":\"a@gmail.com\"}")), true, User{Password: "abc"}, http.StatusInternalServerError, map[string]string{"error": "error"}},
-		{"should get token", bytes.NewReader([]byte("{\"username\":\"abc\", \"password\":\"abc\", \"email\":\"a@gmail.com\"}")), false, User{Password: "abc"}, http.StatusOK, map[string]string{"token": "token"}},
+		{"should bad request cause password invalid", bytes.NewReader([]byte("{\"username\":\"abc\", \"password\":\"abc\"}")), nil, User{Password: "abcd"}, http.StatusBadRequest, map[string]string{"message": "invalid password"}},
+		{"should internal error cause service not working", bytes.NewReader([]byte("{\"username\":\"abc\", \"password\":\"abc\", \"email\":\"a@gmail.com\"}")), errors.New("error"), User{Password: "abc"}, http.StatusInternalServerError, map[string]string{"error": "error"}},
+		{"should get token", bytes.NewReader([]byte("{\"username\":\"abc\", \"password\":\"abc\", \"email\":\"a@gmail.com\"}")), nil, User{Password: "abc"}, http.StatusOK, map[string]string{"token": "token"}},
 	}
 
 	for _, v := range testTable {

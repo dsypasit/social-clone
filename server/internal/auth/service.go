@@ -2,6 +2,7 @@ package auth
 
 import (
 	"errors"
+	"time"
 
 	"github.com/dsypasit/social-clone/server/internal/share/util"
 	"github.com/dsypasit/social-clone/server/internal/user"
@@ -72,7 +73,7 @@ func NewJwtService(secretKey string) *JwtService {
 }
 
 func (jService *JwtService) GenerateToken(userUUID string) (string, error) {
-	claims := AuthJWTClaim{userUUID, jwt.RegisteredClaims{}}
+	claims := AuthJWTClaim{userUUID, jwt.RegisteredClaims{ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour))}}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims, nil)
 	return token.SignedString([]byte(jService.secretKey))
 }
