@@ -2,7 +2,7 @@
 CREATE TABLE IF NOT EXISTS app_user (
   id SERIAL PRIMARY KEY,
   uuid uuid UNIQUE, -- Consider adding UNIQUE constraint
-  app_username varchar(25) NOT NULL,
+  username varchar(25) NOT NULL,
   password varchar(250) NOT NULL,
   email varchar(250),
   gender varchar(10),

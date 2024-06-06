@@ -20,7 +20,7 @@ SET default_table_access_method = heap;
 CREATE TABLE public.app_user (
     id integer NOT NULL,
     uuid uuid,
-    app_username character varying(25) NOT NULL,
+    username character varying(25) NOT NULL,
     password character varying(250) NOT NULL,
     email character varying(250),
     gender character varying(10),

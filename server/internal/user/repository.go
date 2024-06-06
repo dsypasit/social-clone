@@ -25,7 +25,7 @@ func (ur *UserRepository) CreateUser(u UserCreated) (int64, error) {
 		return 0, err
 	}
 	var id int64
-	err := ur.db.QueryRow("INSERT INTO app_user (uuid, username, email, password) VALUES ($1, $2, $3, $4) RETURING id",
+	err := ur.db.QueryRow("INSERT INTO app_user (uuid, username, email, password) VALUES ($1, $2, $3, $4) RETURNING id",
 		u.UUID, u.Username, u.Email, u.Password).Scan(&id)
 	return id, err
 }
