@@ -2,6 +2,7 @@ package util
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -43,6 +44,47 @@ func TestSendJson(t *testing.T) {
 			assert.Equal(t, expected, rec.Body.Bytes(), "Want %v but got %v", expected, rec.Body.Bytes())
 			assert.Equal(t, v.statusCode, rec.Code, "Want %v but got %v", expected, rec.Body.Bytes())
 			assert.Equal(t, v.wantContentType, rec.Header().Get("Content-Type"), "Want %v but got %v", v.wantContentType, rec.Header().Get("Content-Type"))
+		})
+	}
+}
+
+func TestBuildErrResponse(t *testing.T) {
+	testTable := []struct {
+		title      string
+		input      string
+		errorInput error
+		want       map[string]string
+	}{
+		{
+			"Should return err msg", "failed to something", errors.New("something"),
+			map[string]string{"message": "failed to something", "error": "something"},
+		},
+	}
+
+	for _, v := range testTable {
+		t.Run(v.title, func(t *testing.T) {
+			actual := BuildErrResponse(v.input)(v.errorInput)
+			assert.Equal(t, v.want, actual, "should be equal")
+		})
+	}
+}
+
+func TestBuildResponse(t *testing.T) {
+	testTable := []struct {
+		title string
+		input string
+		want  map[string]string
+	}{
+		{
+			"Should return err msg", "failed to something",
+			map[string]string{"message": "failed to something"},
+		},
+	}
+
+	for _, v := range testTable {
+		t.Run(v.title, func(t *testing.T) {
+			actual := BuildResponse(v.input)
+			assert.Equal(t, v.want, actual, "should be equal")
 		})
 	}
 }

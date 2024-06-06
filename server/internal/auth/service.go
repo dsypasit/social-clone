@@ -4,6 +4,7 @@ import (
 	"errors"
 	"strings"
 
+	"github.com/dsypasit/social-clone/server/internal/user"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -13,7 +14,7 @@ var (
 )
 
 type UserServiceForAuth interface {
-	CreateUser(User) (int64, error)
+	CreateUser(user.UserCreated) (int64, error)
 	GetPasswordByUsername(string) (string, error)
 	GetUserUUIDByUsername(string) (string, error)
 }
@@ -32,7 +33,7 @@ func NewAuthService(usrService UserServiceForAuth, jwtService *JwtService) *Auth
 	return &AuthService{usrService: usrService, jwtService: jwtService}
 }
 
-func (as *AuthService) Signup(u User) (string, error) {
+func (as *AuthService) Signup(u user.UserCreated) (string, error) {
 	_, err := as.usrService.CreateUser(u)
 	if err != nil {
 		return "", err

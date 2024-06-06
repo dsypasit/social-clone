@@ -17,3 +17,18 @@ func SendJson(w http.ResponseWriter, data interface{}, statusCode int) {
 	w.WriteHeader(statusCode)
 	w.Write(jsonData)
 }
+
+func BuildErrResponse(message string) func(error) map[string]string {
+	return func(err error) map[string]string {
+		return map[string]string{
+			"message": message,
+			"error":   err.Error(),
+		}
+	}
+}
+
+func BuildResponse(message string) map[string]string {
+	return map[string]string{
+		"message": message,
+	}
+}
