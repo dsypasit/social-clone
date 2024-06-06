@@ -2,8 +2,8 @@ package auth
 
 import (
 	"errors"
-	"strings"
 
+	"github.com/dsypasit/social-clone/server/internal/share/util"
 	"github.com/dsypasit/social-clone/server/internal/user"
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -50,7 +50,9 @@ func (as *AuthService) Login(u User) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if strings.Compare(pass, u.Password) != 0 {
+
+	isMatch, _ := util.VerifyPassword(u.Password, pass)
+	if !isMatch {
 		return "", ErrInvalidPassword
 	}
 	uuid, err := as.usrService.GetUserUUIDByUsername(u.Username)

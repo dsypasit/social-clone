@@ -24,9 +24,9 @@ func TestCreateUser(t *testing.T) {
 		WithArgs(input.Username).
 		WillReturnRows(sqlmock.NewRows([]string{"username"}))
 
-	mock.ExpectExec("INSERT INTO app_user").
-		WithArgs(input.Username, input.Email, input.Password).
-		WillReturnResult(sqlmock.NewResult(1, 1))
+	mock.ExpectQuery("INSERT INTO app_user").
+		WithArgs(input.UUID, input.Username, input.Email, input.Password).
+		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(1))
 
 	userRepo := NewUserRepository(db)
 

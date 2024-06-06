@@ -9,6 +9,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/dsypasit/social-clone/server/internal/user"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -17,7 +18,7 @@ type MockAuthService struct {
 	isErr bool
 }
 
-func (m *MockAuthService) Signup(u User) (string, error) {
+func (m *MockAuthService) Signup(u user.UserCreated) (string, error) {
 	if m.isErr {
 		return "", errors.New("error")
 	}
@@ -43,8 +44,8 @@ func TestSignup_InvalidFormat(t *testing.T) {
 	}{
 		{"should bad request cause input is string", bytes.NewReader([]byte("string")), http.StatusBadRequest, map[string]string{"message": "invalid structure format"}},
 		{"should bad request cause input mismatch struct", bytes.NewReader([]byte("{\"invalid\":\"req\"}")), http.StatusBadRequest, map[string]string{"message": "invalid structure format"}},
-		{"should bad request cause user empty", bytes.NewReader([]byte("{\"username\":\"\", \"password\":\"qwer\"}")), http.StatusBadRequest, map[string]string{"message": "username or password should not empty"}},
-		{"should bad request cause password empty", bytes.NewReader([]byte("{\"username\":\"abc\", \"password\":\"\"}")), http.StatusBadRequest, map[string]string{"message": "username or password should not empty"}},
+		{"should bad request cause user empty", bytes.NewReader([]byte("{\"username\":\"\", \"password\":\"qwer\"}")), http.StatusBadRequest, map[string]string{"message": "username or password empty or invalid email format"}},
+		{"should bad request cause password empty", bytes.NewReader([]byte("{\"username\":\"abc\", \"password\":\"\"}")), http.StatusBadRequest, map[string]string{"message": "username or password empty or invalid email format"}},
 	}
 
 	for _, v := range testTable {
@@ -78,8 +79,8 @@ func TestSignup_ServiceNotWorking(t *testing.T) {
 		wantStatus int
 		wantBody   map[string]string
 	}{
-		{"should internal error cause service not working", bytes.NewReader([]byte("{\"username\":\"abc\", \"password\":\"abc\"}")), true, http.StatusInternalServerError, map[string]string{"message": "error"}},
-		{"should get token", bytes.NewReader([]byte("{\"username\":\"abc\", \"password\":\"abcd\"}")), false, http.StatusCreated, map[string]string{"token": "token"}},
+		{"should internal error cause service not working", bytes.NewReader([]byte("{\"username\":\"abc\", \"password\":\"abc\", \"email\": \"a@gmail.com\"}")), true, http.StatusInternalServerError, map[string]string{"message": "error"}},
+		{"should get token", bytes.NewReader([]byte("{\"username\":\"abc\", \"password\":\"abcd\", \"email\": \"a@gmail.com\"}")), false, http.StatusCreated, map[string]string{"token": "token"}},
 	}
 
 	for _, v := range testTable {
@@ -114,8 +115,8 @@ func TestLogin_InvalidFormat(t *testing.T) {
 	}{
 		{"should bad request cause input is string", bytes.NewReader([]byte("string")), http.StatusBadRequest, map[string]string{"message": "invalid structure format"}},
 		{"should bad request cause input mismatch struct", bytes.NewReader([]byte("{\"invalid\":\"req\"}")), http.StatusBadRequest, map[string]string{"message": "invalid structure format"}},
-		{"should bad request cause user empty", bytes.NewReader([]byte("{\"username\":\"\", \"password\":\"qwer\"}")), http.StatusBadRequest, map[string]string{"message": "username or password should not empty"}},
-		{"should bad request cause password empty", bytes.NewReader([]byte("{\"username\":\"abc\", \"password\":\"\"}")), http.StatusBadRequest, map[string]string{"message": "username or password should not empty"}},
+		{"should bad request cause user empty", bytes.NewReader([]byte("{\"username\":\"\", \"password\":\"qwer\"}")), http.StatusBadRequest, map[string]string{"message": "username or password empty or invalid email format"}},
+		{"should bad request cause password empty", bytes.NewReader([]byte("{\"username\":\"abc\", \"password\":\"\"}")), http.StatusBadRequest, map[string]string{"message": "username or password empty or invalid email format"}},
 	}
 
 	for _, v := range testTable {
@@ -151,8 +152,8 @@ func TestLogin_Service(t *testing.T) {
 		wantBody    map[string]string
 	}{
 		{"should bad request cause password invalid", bytes.NewReader([]byte("{\"username\":\"abc\", \"password\":\"abc\"}")), false, User{Password: "abcd"}, http.StatusBadRequest, map[string]string{"message": "invalid password"}},
-		{"should internal error cause service not working", bytes.NewReader([]byte("{\"username\":\"abc\", \"password\":\"abc\"}")), true, User{Password: "abc"}, http.StatusInternalServerError, map[string]string{"message": "error"}},
-		{"should get token", bytes.NewReader([]byte("{\"username\":\"abc\", \"password\":\"abc\"}")), false, User{Password: "abc"}, http.StatusOK, map[string]string{"token": "token"}},
+		{"should internal error cause service not working", bytes.NewReader([]byte("{\"username\":\"abc\", \"password\":\"abc\", \"email\":\"a@gmail.com\"}")), true, User{Password: "abc"}, http.StatusInternalServerError, map[string]string{"error": "error"}},
+		{"should get token", bytes.NewReader([]byte("{\"username\":\"abc\", \"password\":\"abc\", \"email\":\"a@gmail.com\"}")), false, User{Password: "abc"}, http.StatusOK, map[string]string{"token": "token"}},
 	}
 
 	for _, v := range testTable {

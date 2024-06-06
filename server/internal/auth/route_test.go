@@ -28,10 +28,10 @@ func TestRoute(t *testing.T) {
 	RegisterAuthRouter(router, &authHandler)
 
 	// Test signup route
-	router.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest("POST", "/signup", nil))
+	router.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest("POST", "/auth/signup", nil))
 	assert.True(t, authHandler.signupCalled, "signup handler not called")
 
 	// Test login route (similar approach)
-	router.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest("POST", "/login", nil))
+	router.ServeHTTP(httptest.NewRecorder(), httptest.NewRequest("POST", "/auth/login", nil))
 	assert.True(t, authHandler.loginCalled, "login handler not called")
 }

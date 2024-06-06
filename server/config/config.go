@@ -29,7 +29,7 @@ const (
 	cHostname = "HOSTNAME"
 	cPort     = "PORT"
 
-	cDBConnection = "DB_CONNECTION"
+	cDBConnection = "DATABASE_URL"
 )
 
 const (

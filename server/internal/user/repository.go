@@ -3,6 +3,8 @@ package user
 import (
 	"database/sql"
 	"errors"
+
+	_ "github.com/lib/pq"
 )
 
 var (
@@ -22,12 +24,10 @@ func (ur *UserRepository) CreateUser(u UserCreated) (int64, error) {
 	if err := ur.IsDuplicateUsername(u.Username); err != nil {
 		return 0, err
 	}
-	result, err := ur.db.Exec("INSERT INTO app_user (username, email, password) VALUE ($1, $2, $3)",
-		u.Username, u.Email, u.Password)
-	if err != nil {
-		return 0, err
-	}
-	return result.LastInsertId()
+	var id int64
+	err := ur.db.QueryRow("INSERT INTO app_user (uuid, username, email, password) VALUES ($1, $2, $3, $4) RETURING id",
+		u.UUID, u.Username, u.Email, u.Password).Scan(&id)
+	return id, err
 }
 
 func (ur *UserRepository) GetUserByUsername(username string) (User, error) {

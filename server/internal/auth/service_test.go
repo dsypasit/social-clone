@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/dsypasit/social-clone/server/internal/share/util"
 	"github.com/dsypasit/social-clone/server/internal/user"
 	"github.com/stretchr/testify/assert"
 )
@@ -66,13 +67,14 @@ func TestJwtLogin(t *testing.T) {
 	t.Run("should signin work and return token", func(t *testing.T) {
 		loginedUser := User{
 			Username: "ong",
-			Password: "1234",
 		}
+		loginedUser.Password, _ = util.GeneratePassword("1234")
 
 		userService := MockUserService{nil, loginedUser}
 		jwtService := NewJwtService(secretKey)
 		authService := NewAuthService(&userService, jwtService)
 
+		loginedUser.Password = "1234"
 		token, err := authService.Login(loginedUser)
 
 		assert.Nil(t, err, "err should be nil")
