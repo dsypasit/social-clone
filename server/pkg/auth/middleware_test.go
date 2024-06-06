@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/dsypasit/social-clone/server/internal/auth"
 	"github.com/golang-jwt/jwt/v5"
@@ -69,6 +70,7 @@ func TestAuthMiddleware_InvalidFormat(t *testing.T) {
 
 type MockJwtService struct {
 	claimToken auth.AuthJWTClaim
+	err        error
 }
 
 func (m *MockJwtService) GenerateToken(userUUID string) (string, error) {
@@ -76,7 +78,7 @@ func (m *MockJwtService) GenerateToken(userUUID string) (string, error) {
 }
 
 func (m *MockJwtService) VerifyToken(token string) (*auth.AuthJWTClaim, error) {
-	return &m.claimToken, nil
+	return &m.claimToken, m.err
 }
 
 func TestAuthMiddleware_ValidClaims(t *testing.T) {
@@ -110,4 +112,31 @@ func TestAuthMiddleware_ValidClaims(t *testing.T) {
 	middleware(nextHandler).ServeHTTP(rec, req)
 
 	assert.Equalf(t, http.StatusOK, rec.Code, "Expected Ok status code, got: %v", rec.Code)
+}
+
+func TestAuthMiddleware_ExpiredToken(t *testing.T) {
+	claimToken := auth.AuthJWTClaim{UserUUID: "581462b2-284b-44fd-86be-0878ddaeb219", RegisteredClaims: jwt.RegisteredClaims{
+		ExpiresAt: jwt.NewNumericDate(time.Now().Add(1 * time.Nanosecond)),
+	}}
+
+	mService := MockJwtService{claimToken: claimToken, err: jwt.ErrTokenExpired}
+
+	middleware := AuthMiddleware(&mService)
+	req, err := http.NewRequest(http.MethodGet, "/", nil)
+	assert.Nilf(t, err, "Unexpected error : %v", err)
+	req.Header.Add("Authorization", "Bearer valid token")
+
+	rec := httptest.NewRecorder()
+
+	middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})).ServeHTTP(rec, req)
+
+	expected := map[string]string{
+		"message": "token expired",
+	}
+
+	var response map[string]string
+	json.NewDecoder(rec.Body).Decode(&response)
+
+	assert.Equalf(t, http.StatusUnauthorized, rec.Code, "expected unauthorized status but got %v", rec.Code)
+	assert.Equalf(t, expected, response, "want %v but got %v", expected, response)
 }

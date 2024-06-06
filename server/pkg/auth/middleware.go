@@ -3,11 +3,11 @@ package auth
 import (
 	"context"
 	"encoding/json"
-	"log"
 	"net/http"
 	"strings"
 
 	"github.com/dsypasit/social-clone/server/internal/auth"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/gorilla/mux"
 )
 
@@ -42,6 +42,15 @@ func Middleware(jwtService auth.JwtServiceInterface, next http.Handler) http.Han
 
 		claim, err := jwtService.VerifyToken(token)
 		if err != nil {
+			if err == jwt.ErrTokenExpired {
+				w.WriteHeader(http.StatusUnauthorized)
+
+				json.NewEncoder(w).Encode(map[string]string{
+					"message": "token expired",
+				})
+				return
+			}
+
 			w.WriteHeader(http.StatusUnauthorized)
 
 			json.NewEncoder(w).Encode(map[string]string{
@@ -51,9 +60,7 @@ func Middleware(jwtService auth.JwtServiceInterface, next http.Handler) http.Han
 		}
 
 		// insert uuid value to context
-		log.Println("claim", claim.UserUUID)
 		ctx := context.WithValue(r.Context(), "userUUID", claim.UserUUID)
 		next.ServeHTTP(w, r.WithContext(ctx))
-		log.Println("claim", r.Context().Value("UserUUID"))
 	})
 }
