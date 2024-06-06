@@ -4,25 +4,27 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/dsypasit/social-clone/server/internal/user"
 	"github.com/stretchr/testify/assert"
 )
 
 var secretKey = "test"
 
 type MockUserService struct {
-	u User
+	u      *user.UserCreated
+	uLogin User
 }
 
-func (us *MockUserService) CreateUser(u User) (int64, error) {
+func (us *MockUserService) CreateUser(u user.UserCreated) (int64, error) {
 	return 1, nil
 }
 
 func (us *MockUserService) GetPasswordByUsername(s string) (string, error) {
-	return us.u.Password, nil
+	return us.uLogin.Password, nil
 }
 
 func (us *MockUserService) GetUserUUIDByUsername(s string) (string, error) {
-	return us.u.Password, nil
+	return "b3c5d2af-5cd3-4164-979d-1dcc705411bc", nil
 }
 
 func TestJwtService(t *testing.T) {
@@ -52,7 +54,7 @@ func TestJwtSignUp(t *testing.T) {
 		userService := MockUserService{}
 		jwtService := NewJwtService(secretKey)
 		authService := NewAuthService(&userService, jwtService)
-		newUser := User{}
+		newUser := user.UserCreated{}
 		token, err := authService.Signup(newUser)
 
 		assert.Nil(t, err, "err should be nil")
@@ -67,7 +69,7 @@ func TestJwtLogin(t *testing.T) {
 			Password: "1234",
 		}
 
-		userService := MockUserService{loginedUser}
+		userService := MockUserService{nil, loginedUser}
 		jwtService := NewJwtService(secretKey)
 		authService := NewAuthService(&userService, jwtService)
 
@@ -83,7 +85,7 @@ func TestJwtLogin(t *testing.T) {
 			Password: "1234",
 		}
 
-		userService := MockUserService{loginedUser}
+		userService := MockUserService{nil, loginedUser}
 		jwtService := NewJwtService(secretKey)
 		authService := NewAuthService(&userService, jwtService)
 

@@ -2,22 +2,65 @@ package user
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
+
+	"github.com/dsypasit/social-clone/server/internal/share/util"
+	"github.com/gorilla/mux"
 )
 
-type UserHandler struct {
-	userSrv *UserService
+type IUserService interface {
+	GetUserByUUID(string) (User, error)
+	CreateUser(UserCreated) (int64, error)
 }
 
-func NewUserHandler(userSrv *UserService) *UserHandler {
+type UserHandler struct {
+	userSrv IUserService
+}
+
+func NewUserHandler(userSrv IUserService) *UserHandler {
 	return &UserHandler{userSrv}
 }
 
-func (h *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
-	result := []User{
-		{},
-		{},
+func (h *UserHandler) GetUserByUUID(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	uuid, ok := vars["uuid"]
+	if !ok || uuid == "" {
+		util.SendJson(w, map[string]string{"message": "invalid uuid"}, http.StatusBadRequest)
+		return
 	}
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(result)
+
+	userQuery, err := h.userSrv.GetUserByUUID(uuid)
+	if err != nil {
+		if err == ErrUserNotFound {
+			util.SendJson(w, map[string]string{"message": "user not found"}, http.StatusNotFound)
+			return
+		}
+		util.SendJson(w, map[string]string{"message": "failed to get user by uuid", "error": err.Error()},
+			http.StatusInternalServerError)
+		return
+	}
+
+	util.SendJson(w, userQuery, http.StatusOK)
+}
+
+func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
+	var newUser UserCreated
+	if err := json.NewDecoder(r.Body).Decode(&newUser); err != nil {
+		util.SendJson(w, map[string]string{"message": "invalid body"}, http.StatusBadRequest)
+		return
+	}
+
+	errResponse := util.BuildErrResponse("Failed to create user")
+	if !util.ValidateEmail(newUser.Email) {
+		util.SendJson(w, errResponse(errors.New("invalid email format")), http.StatusBadRequest)
+		return
+	}
+	_, err := h.userSrv.CreateUser(newUser)
+	if err != nil {
+		util.SendJson(w, errResponse(err), http.StatusInternalServerError)
+		return
+	}
+
+	util.SendJson(w, util.BuildResponse("User created successfully!"), http.StatusCreated)
 }
