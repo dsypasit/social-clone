@@ -8,10 +8,17 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import { loginSchema } from "@/app/(auth)/login/validate";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
+import { loginService } from "@/lib/services/authService";
+import { useState } from "react";
 
 type FormData = yup.InferType<typeof loginSchema>;
 
 export default function Login() {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const router = useRouter();
   const {
     register,
     handleSubmit,
@@ -19,7 +26,19 @@ export default function Login() {
   } = useForm<FormData>({
     resolver: yupResolver(loginSchema),
   });
-  const onSubmit = (data: FormData) => console.log(data);
+
+  const onSubmit = async (data: FormData) => {
+    setIsSubmitting(true);
+    try {
+      await loginService(data);
+      setIsSubmitting(false);
+      router.push("/", { scroll: false });
+    } catch (err) {
+      console.log(err.message);
+      setIsSubmitting(false);
+      setError(err.message);
+    }
+  };
 
   return (
     <div className="h-screen w-1/2 px-20 flex flex-col justify-center items-center">
@@ -50,7 +69,11 @@ export default function Login() {
           </Link>{" "}
           if you don't have an account yet.
         </p>
-        <Button className="mt-4">Click me</Button>
+        <Button disabled={isSubmitting} type="submit" className="mt-4">
+          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          Login
+        </Button>
+        <p className="text-destructive text-sm">{error}</p>
       </form>
     </div>
   );

@@ -43,6 +43,11 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 			util.SendJson(w, map[string]string{"message": "invalid password"}, http.StatusBadRequest)
 			return
 		}
+
+		if err == ErrUserNotFound {
+			util.SendJson(w, map[string]string{"message": "user not found"}, http.StatusBadRequest)
+			return
+		}
 		util.SendJson(w, map[string]string{"error": err.Error()}, http.StatusInternalServerError)
 		return
 	}

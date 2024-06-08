@@ -10,7 +10,7 @@ import (
 
 type LoggerKey string
 
-var logKey LoggerKey = "logger"
+var LogKey LoggerKey = "logger"
 
 func Middleware(logger *zap.Logger) mux.MiddlewareFunc {
 	return func(next http.Handler) http.Handler {
@@ -36,7 +36,7 @@ func (lrw *loggingResponseWriter) WriteHeader(code int) {
 
 func LogMiddleware(next http.Handler, logger *zap.Logger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := context.WithValue(r.Context(), logKey, logger)
+		ctx := context.WithValue(r.Context(), LogKey, logger)
 		lrw := &loggingResponseWriter{ResponseWriter: w}
 
 		next.ServeHTTP(lrw, r.WithContext(ctx))

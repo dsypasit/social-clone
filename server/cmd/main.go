@@ -9,6 +9,7 @@ import (
 	"github.com/dsypasit/social-clone/server/internal/auth"
 	"github.com/dsypasit/social-clone/server/internal/share/db"
 	"github.com/dsypasit/social-clone/server/internal/user"
+	"github.com/dsypasit/social-clone/server/pkg"
 	"github.com/dsypasit/social-clone/server/pkg/logger"
 	"github.com/gorilla/mux"
 	_ "github.com/lib/pq"
@@ -50,8 +51,9 @@ func main() {
 	zlogConfig.EncoderConfig.EncodeTime = zapcore.RFC3339TimeEncoder
 	zlog, _ := zlogConfig.Build()
 	defer zlog.Sync()
+	router.Use(pkg.CorsMiddleware)
 	router.Use(logger.Middleware(zlog))
 
 	fmt.Printf("Running server with port %d\n", cfg.Server.Port)
-	http.ListenAndServe(fmt.Sprintf(":%v", cfg.Server.Port), router)
+	http.ListenAndServe(fmt.Sprintf(":%v", cfg.Server.Port), pkg.CorsMiddleware(router))
 }

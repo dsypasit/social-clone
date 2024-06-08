@@ -49,6 +49,9 @@ func (as *AuthService) Signup(u user.UserCreated) (string, error) {
 func (as *AuthService) Login(u User) (string, error) {
 	pass, err := as.usrService.GetPasswordByUsername(u.Username)
 	if err != nil {
+		if err == user.ErrUserNotFound {
+			return "", ErrUserNotFound
+		}
 		return "", err
 	}
 
