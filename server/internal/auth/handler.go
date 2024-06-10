@@ -108,6 +108,7 @@ func (h *AuthHandler) CheckToken(w http.ResponseWriter, r *http.Request) {
 	if !h.authService.CheckToken(token) {
 		res := util.BuildResponse("Unauthorized")
 		util.SendJson(w, res, http.StatusUnauthorized)
+		return
 	}
 	util.SendJson(w, nil, http.StatusNoContent)
 }
