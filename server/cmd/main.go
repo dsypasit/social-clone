@@ -51,9 +51,8 @@ func main() {
 	zlogConfig.EncoderConfig.EncodeTime = zapcore.RFC3339TimeEncoder
 	zlog, _ := zlogConfig.Build()
 	defer zlog.Sync()
-	router.Use(pkg.CorsMiddleware)
-	router.Use(logger.Middleware(zlog))
+	logMiddleware := logger.Middleware(zlog)
 
 	fmt.Printf("Running server with port %d\n", cfg.Server.Port)
-	http.ListenAndServe(fmt.Sprintf(":%v", cfg.Server.Port), pkg.CorsMiddleware(router))
+	http.ListenAndServe(fmt.Sprintf(":%v", cfg.Server.Port), logMiddleware(pkg.CorsMiddleware(router)))
 }
