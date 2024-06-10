@@ -67,16 +67,26 @@ func (as *AuthService) Login(u User) (string, error) {
 	return as.jwtService.GenerateToken(uuid)
 }
 
+func (as *AuthService) CheckToken(token string) bool {
+	_, err := as.jwtService.VerifyToken(token)
+	return err == nil
+}
+
 type JwtService struct {
-	secretKey string
+	secretKey       string
+	expiresDuration time.Duration
 }
 
 func NewJwtService(secretKey string) *JwtService {
-	return &JwtService{secretKey: secretKey}
+	return &JwtService{secretKey: secretKey, expiresDuration: 24 * time.Hour}
+}
+
+func NewJwtServiceWithExpireDuration(secretKey string, expiresDuration time.Duration) *JwtService {
+	return &JwtService{secretKey: secretKey, expiresDuration: expiresDuration}
 }
 
 func (jService *JwtService) GenerateToken(userUUID string) (string, error) {
-	claims := AuthJWTClaim{userUUID, jwt.RegisteredClaims{ExpiresAt: jwt.NewNumericDate(time.Now().Add(24 * time.Hour))}}
+	claims := AuthJWTClaim{userUUID, jwt.RegisteredClaims{ExpiresAt: jwt.NewNumericDate(time.Now().Add(jService.expiresDuration))}}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims, nil)
 	return token.SignedString([]byte(jService.secretKey))
 }

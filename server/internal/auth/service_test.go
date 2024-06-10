@@ -102,3 +102,32 @@ func TestJwtLogin(t *testing.T) {
 		assert.Equal(t, ErrInvalidPassword, err, "err should be invalid password")
 	})
 }
+
+func TestCheckToken(t *testing.T) {
+	jService := NewJwtService(secretKey)
+	userUUID := "53d84415-9650-4271-b701-93fd9ed14adf"
+	token, _ := jService.GenerateToken(userUUID)
+
+	jService = NewJwtServiceWithExpireDuration(secretKey, 0)
+	expireToken, _ := jService.GenerateToken(userUUID)
+
+	testTable := []struct {
+		title string
+		input string
+		want  bool
+	}{
+		{"should return true", token, true},
+		{"should return false", "", false},
+		{"should return false cause expired", expireToken, false},
+	}
+
+	for _, v := range testTable {
+		t.Run(v.title, func(t *testing.T) {
+			jService = NewJwtService(secretKey)
+			muService := MockUserService{}
+			aService := NewAuthService(&muService, jService)
+			actual := aService.CheckToken(v.input)
+			assert.Equalf(t, v.want, actual, "Want %v but got %v", v.want, actual)
+		})
+	}
+}

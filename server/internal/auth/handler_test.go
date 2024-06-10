@@ -25,6 +25,10 @@ func (m *MockAuthService) Signup(u user.UserCreated) (string, error) {
 	return "token", nil
 }
 
+func (m *MockAuthService) CheckToken(token string) bool {
+	return m.isErr == nil
+}
+
 func (m *MockAuthService) Login(u User) (string, error) {
 	if m.isErr != nil {
 		return "", m.isErr
@@ -178,4 +182,48 @@ func TestLogin_Service(t *testing.T) {
 			assert.Equalf(t, v.wantBody, actualResponse, "Expected %v, but got %v", expected, actualCode)
 		})
 	}
+}
+
+func TestHandlerCheckToken(t *testing.T) {
+	t.Run("Should return no content status", func(t *testing.T) {
+		mService := MockAuthService{isErr: nil}
+		aHandler := NewAuthHandler(&mService)
+
+		req, _ := http.NewRequest(http.MethodGet, "/", nil)
+		req.Header.Add("Authorization", "Bearer validtoken")
+
+		rec := httptest.NewRecorder()
+		aHandler.CheckToken(rec, req)
+
+		wantStatus := http.StatusNoContent
+		assert.Equalf(t, wantStatus, rec.Code, "Want %v but got %v", wantStatus, rec.Code)
+	})
+
+	t.Run("should return unautorized", func(t *testing.T) {
+		mService := MockAuthService{isErr: errors.New("")}
+		aHandler := NewAuthHandler(&mService)
+
+		req, _ := http.NewRequest(http.MethodGet, "/", nil)
+		req.Header.Add("Authorization", "Bearer invalid")
+
+		rec := httptest.NewRecorder()
+		aHandler.CheckToken(rec, req)
+
+		wantStatus := http.StatusUnauthorized
+		assert.Equalf(t, wantStatus, rec.Code, "Want %v but got %v", wantStatus, rec.Code)
+	})
+
+	t.Run("should return unautorized cause invalid header", func(t *testing.T) {
+		mService := MockAuthService{isErr: nil}
+		aHandler := NewAuthHandler(&mService)
+
+		req, _ := http.NewRequest(http.MethodGet, "/", nil)
+		req.Header.Add("Authorization", "")
+
+		rec := httptest.NewRecorder()
+		aHandler.CheckToken(rec, req)
+
+		wantStatus := http.StatusUnauthorized
+		assert.Equalf(t, wantStatus, rec.Code, "Want %v but got %v", wantStatus, rec.Code)
+	})
 }

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/dsypasit/social-clone/server/internal/share/util"
 	"github.com/dsypasit/social-clone/server/internal/user"
@@ -16,6 +17,7 @@ type AuthHandler struct {
 type AuthServiceInterface interface {
 	Signup(u user.UserCreated) (string, error)
 	Login(u User) (string, error)
+	CheckToken(token string) bool
 }
 
 func NewAuthHandler(authService AuthServiceInterface) *AuthHandler {
@@ -79,4 +81,33 @@ func (h *AuthHandler) Signup(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	util.SendJson(w, map[string]string{"token": token}, http.StatusCreated)
+}
+
+func (h *AuthHandler) CheckToken(w http.ResponseWriter, r *http.Request) {
+	authValue := r.Header.Get("Authorization")
+	if authValue == "" {
+		w.WriteHeader(http.StatusUnauthorized)
+
+		json.NewEncoder(w).Encode(map[string]string{
+			"message": "Missing authorization token",
+		})
+		return
+	}
+
+	parts := strings.SplitN(authValue, "Bearer ", 2)
+	if len(parts) != 2 {
+		w.WriteHeader(http.StatusUnauthorized)
+
+		json.NewEncoder(w).Encode(map[string]string{
+			"message": "Invalid authorization format",
+		})
+		return
+	}
+	token := parts[1]
+
+	if !h.authService.CheckToken(token) {
+		res := util.BuildResponse("Unauthorized")
+		util.SendJson(w, res, http.StatusUnauthorized)
+	}
+	util.SendJson(w, nil, http.StatusNoContent)
 }
