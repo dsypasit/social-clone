@@ -1,6 +1,12 @@
 package post
 
-import "github.com/dsypasit/social-clone/server/internal/comment"
+import (
+	"errors"
+
+	"github.com/dsypasit/social-clone/server/internal/comment"
+)
+
+var ErrNoRows = errors.New("no posts")
 
 type PostHandler struct {
 	postService    *PostService
