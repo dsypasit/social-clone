@@ -13,6 +13,7 @@ type PostHandler struct {
 	commentService *comment.CommentService
 }
 
+// TODO: add post handler method
 func NewPostHandler(postService *PostService, commentService *comment.CommentService) *PostHandler {
 	return &PostHandler{postService, commentService}
 }
