@@ -10,17 +10,17 @@ import (
 func TestCreatePost(t *testing.T) {
 	testTable := []struct {
 		title   string
-		post    Post
+		post    PostCreated
 		wantId  int64
 		wantErr error
 	}{
 		{
 			"create success",
-			Post{
+			PostCreated{
 				UUID:             "f307d2db-d2ea-4ec9-8d31-27b7443d7c72",
 				Content:          "Hello",
 				NumLike:          0,
-				UserId:           1,
+				UserUUID:         "e936e164-52fa-4fd5-b0e0-597c2f270245",
 				VisibilityTypeId: 1,
 			},
 			1, nil,
@@ -70,7 +70,7 @@ func TestGetPostByUserUUID(t *testing.T) {
 				AddRow(v.wantPost[0].UUID, v.wantPost[0].Content, v.wantPost[0].NumLike, v.wantPost[0].VisibilityTypeId, v.wantPost[0].UserUUID))
 
 			postRepo := NewPostRepository(db)
-			posts, err := postRepo.GetPostByUserUUID(v.userUUID)
+			posts, err := postRepo.GetPostsByUserUUID(v.userUUID)
 			assert.Equalf(t, v.wantErr, err, "unexpected error: %v", err)
 			assert.Equalf(t, v.wantPost, posts, "Want %v but got %v", v.wantPost, posts)
 		})

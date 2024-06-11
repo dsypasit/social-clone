@@ -7,6 +7,7 @@ import (
 
 	"github.com/dsypasit/social-clone/server/config"
 	"github.com/dsypasit/social-clone/server/internal/auth"
+	"github.com/dsypasit/social-clone/server/internal/post"
 	"github.com/dsypasit/social-clone/server/internal/share/db"
 	"github.com/dsypasit/social-clone/server/internal/user"
 	"github.com/dsypasit/social-clone/server/pkg"
@@ -26,19 +27,23 @@ func main() {
 	defer db.Close()
 
 	usrRepo := user.NewUserRepository(db.DB)
+	postRepo := post.NewPostRepository(db.DB)
 
 	usrSrv := user.NewUserService(usrRepo)
 	jwtSrv := auth.NewJwtService("test")
 	authSrv := auth.NewAuthService(usrSrv, jwtSrv)
+	postSrv := post.NewPostService(postRepo)
 
 	usrHandler := user.NewUserHandler(usrSrv)
 	authHandler := auth.NewAuthHandler(authSrv)
+	postHandler := post.NewPostHandler(postSrv)
 
 	router := mux.NewRouter()
 	router = router.PathPrefix("/api/v1").Subrouter()
 
 	user.RegisterUserRouter(router, usrHandler)
 	auth.RegisterAuthRouter(router, authHandler)
+	post.RegisterPostRouter(router, postHandler)
 
 	router.HandleFunc("/healtcheck", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)

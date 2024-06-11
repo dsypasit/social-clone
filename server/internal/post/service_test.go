@@ -12,7 +12,7 @@ type MockRepo struct {
 	postRes []PostResponse
 }
 
-func (m *MockRepo) CreatePost(Post) (int64, error) {
+func (m *MockRepo) CreatePost(PostCreated) (int64, error) {
 	if m.repoErr != nil {
 		return 0, m.repoErr
 	}
@@ -29,13 +29,13 @@ func (m *MockRepo) GetPostsByUserUUID(string) ([]PostResponse, error) {
 func TestServiceCreatePost(t *testing.T) {
 	testTable := []struct {
 		title   string
-		input   Post
+		input   PostCreated
 		wantId  int64
 		wantErr error
 	}{
-		{"should create success", Post{
+		{"should create success", PostCreated{
 			Content:          "Hello",
-			UserId:           1,
+			UserUUID:         "cfaecdf4-2a2a-47fb-a1fa-114b18383feb",
 			VisibilityTypeId: 1,
 		}, 1, nil},
 	}

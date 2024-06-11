@@ -20,9 +20,13 @@ func SendJson(w http.ResponseWriter, data interface{}, statusCode int) {
 
 func BuildErrResponse(message string) func(error) map[string]string {
 	return func(err error) map[string]string {
+		errStr := ""
+		if err != nil {
+			errStr = err.Error()
+		}
 		return map[string]string{
 			"message": message,
-			"error":   err.Error(),
+			"error":   errStr,
 		}
 	}
 }

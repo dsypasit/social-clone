@@ -7,7 +7,7 @@ import (
 )
 
 type IPostRepository interface {
-	CreatePost(Post) (int64, error)
+	CreatePost(PostCreated) (int64, error)
 	GetPostsByUserUUID(string) ([]PostResponse, error)
 }
 
@@ -19,7 +19,7 @@ func NewPostService(postRepo IPostRepository) *PostService {
 	return &PostService{postRepo}
 }
 
-func (s *PostService) CreatePost(p Post) (int64, error) {
+func (s *PostService) CreatePost(p PostCreated) (int64, error) {
 	p.UUID = uuid.NewString()
 	return s.postRepo.CreatePost(p)
 }

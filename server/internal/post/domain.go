@@ -22,6 +22,14 @@ type PostResponse struct {
 	UpdateAt         string `json:"update_at"`
 }
 
+type PostCreated struct {
+	UUID             string `json:"uuid"`
+	Content          string `json:"content"`
+	NumLike          int64  `json:"num_like,omitempty"`
+	UserUUID         string `json:"user_uuid"`
+	VisibilityTypeId int    `json:"visibility_type_id"`
+}
+
 type VisibilityType struct {
 	ID   int    `json:"id"`
 	Name string `json:"name"`

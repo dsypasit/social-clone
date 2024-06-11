@@ -10,16 +10,23 @@ func NewPostRepository(db *sql.DB) *PostRepository {
 	return &PostRepository{db}
 }
 
-func (r *PostRepository) CreatePost(p Post) (int64, error) {
-	query := "INSERT INTO post (uuid, content, num_like, visibility_type_id, app_user_id)"
+func (r *PostRepository) CreatePost(p PostCreated) (int64, error) {
+	query := `INSERT INTO post (uuid, content, num_like, visibility_type_id, app_user_id)
+    VALUES (
+        $1,
+        $2,
+        0,
+        $3,
+        (SELECT id FROM app_user WHERE uuid = $4)
+    ) RETURNING id`
 
 	var id int64
 	err := r.db.QueryRow(query, p.UUID, p.Content, 0,
-		p.VisibilityTypeId, p.UserId).Scan(&id)
+		p.VisibilityTypeId, p.UserUUID).Scan(&id)
 	return id, err
 }
 
-func (r *PostRepository) GetPostByUserUUID(userUUID string) ([]PostResponse, error) {
+func (r *PostRepository) GetPostsByUserUUID(userUUID string) ([]PostResponse, error) {
 	query := `
   SELECT p.uuid, p.content, p.num_like, p.visibility_type_id,
   u.uuid FROM post as p

@@ -59,6 +59,10 @@ func TestBuildErrResponse(t *testing.T) {
 			"Should return err msg", "failed to something", errors.New("something"),
 			map[string]string{"message": "failed to something", "error": "something"},
 		},
+		{
+			"Should return empty error string msg", "failed to something", nil,
+			map[string]string{"message": "failed to something", "error": ""},
+		},
 	}
 
 	for _, v := range testTable {
