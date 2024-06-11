@@ -12,6 +12,7 @@ import (
 type IUserService interface {
 	GetUserByUUID(string) (User, error)
 	CreateUser(UserCreated) (int64, error)
+	GetUserByUsername(string) (User, error)
 }
 
 type UserHandler struct {
@@ -63,4 +64,29 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	util.SendJson(w, util.BuildResponse("User created successfully!"), http.StatusCreated)
+}
+
+func (h *UserHandler) GetUserByUsername(w http.ResponseWriter, r *http.Request) {
+	username := r.URL.Query().Get("username")
+	errInvalidRes := util.BuildErrResponse("invalid request")
+	if username == "" {
+		util.SendJson(w, errInvalidRes(errors.New("invalid username")), http.StatusBadRequest)
+		return
+	}
+	user, err := h.userSrv.GetUserByUsername(username)
+	errServiceRes := util.BuildErrResponse("service failure")
+	if err != nil {
+		if err == ErrUserNotFound {
+			util.SendJson(w, util.BuildResponse("user not found"), http.StatusNotFound)
+			return
+		}
+		util.SendJson(w, errServiceRes(err), http.StatusInternalServerError)
+		return
+	}
+
+	userRes := UserResponse{
+		user.UUID, user.Username, user.Email,
+	}
+
+	util.SendJson(w, userRes, http.StatusOK)
 }

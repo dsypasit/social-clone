@@ -1,6 +1,7 @@
 package user
 
 import (
+	"database/sql"
 	"testing"
 	"time"
 
@@ -26,6 +27,10 @@ func (m *MockUserRepo) CreateUser(newUser UserCreated) (int64, error) {
 
 func (m *MockUserRepo) GetUserUUIDByUsername(uname string) (string, error) {
 	return "da198c46-5b53-4988-986c-00df8f0a4086", nil
+}
+
+func (m *MockUserRepo) GetUserByUsername(uname string) (User, error) {
+	return m.u, m.err
 }
 
 func TestServiceGetUserByUUID(t *testing.T) {
@@ -123,4 +128,39 @@ func TestServiceGetUserUUIDByUsername(t *testing.T) {
 	uuid, err := us.GetUserUUIDByUsername(input)
 	assert.Equal(t, nil, err, "Unexpected error: %v", err)
 	assert.Equal(t, want, uuid, "Want %v but got %v", want, uuid)
+}
+
+func TestServiceGetUserByUsername(t *testing.T) {
+	testTable := []struct {
+		title   string
+		input   string
+		repoErr error
+		want    User
+		wantErr error
+	}{
+		{"should return user", "ong2", nil, User{
+			UUID:     "3d128d39-5491-4f8b-ad2b-036bffbd454e",
+			Username: "ong2",
+			Email:    "a@gmail.com",
+		}, nil},
+		{"should return err user not found", "ong2", sql.ErrNoRows, User{}, ErrUserNotFound},
+	}
+
+	for _, v := range testTable {
+		t.Run(v.title, func(t *testing.T) {
+			mRepo := MockUserRepo{
+				u: User{
+					UUID:     v.want.UUID,
+					Username: v.want.Username,
+					Email:    v.want.Email,
+				},
+				err: v.repoErr,
+			}
+
+			service := NewUserService(&mRepo)
+			userRes, err := service.GetUserByUsername(v.input)
+			assert.Equalf(t, v.wantErr, err, "Unexpected error: %v", err)
+			assert.Equalf(t, v.want, userRes, "Want %v but got %v", v.want, userRes)
+		})
+	}
 }

@@ -15,9 +15,9 @@ func (r *PostRepository) CreatePost(p PostCreated) (int64, error) {
     VALUES (
         $1,
         $2,
-        0,
         $3,
-        (SELECT id FROM app_user WHERE uuid = $4)
+        $4,
+        (SELECT id FROM app_user WHERE uuid = $5)
     ) RETURNING id`
 
 	var id int64

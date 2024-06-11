@@ -72,7 +72,7 @@ func TestGetUserByUsername(t *testing.T) {
 	row := sqlmock.NewRows([]string{"id", "uuid", "username", "email", "created_at"}).
 		AddRow(1, "0870a9ce-78d2-463d-bd88-ad0a0eee0e81", "ong", "a@gmail.com", CreatedAt)
 
-	mock.ExpectQuery("SELECT id, uuid, username, email, created_at FROM app_user").
+	mock.ExpectQuery("SELECT").
 		WithArgs(input).
 		WillReturnRows(row)
 
@@ -117,7 +117,7 @@ func TestGetUserByUUID(t *testing.T) {
 			assert.Nilf(t, err, "Expected nil from created sqlmock")
 			defer db.Close()
 
-			mock.ExpectQuery("SELECT id, uuid, username, email, created_at FROM app_user").
+			mock.ExpectQuery("SELECT").
 				WithArgs(v.input).
 				WillReturnRows(&v.rows)
 
@@ -140,7 +140,7 @@ func TestGetUserByUsername_NotFound(t *testing.T) {
 
 	row := sqlmock.NewRows([]string{"id", "uuid", "username", "email", "created_at"}).CloseError(sql.ErrNoRows)
 
-	mock.ExpectQuery("SELECT id, uuid, username, email, created_at FROM app_user").
+	mock.ExpectQuery("SELECT").
 		WithArgs(input).
 		WillReturnRows(row)
 

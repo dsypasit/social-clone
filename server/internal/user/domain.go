@@ -18,3 +18,9 @@ type UserCreated struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
+
+type UserResponse struct {
+	UUID     string `json:"uuid" db:"uuid"`
+	Username string `json:"username" db:"username"`
+	Email    string `json:"email" db:"email"`
+}

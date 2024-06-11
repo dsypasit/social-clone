@@ -1,6 +1,7 @@
 package user
 
 import (
+	"database/sql"
 	"errors"
 
 	"github.com/dsypasit/social-clone/server/internal/share/util"
@@ -12,6 +13,7 @@ type IUserRepository interface {
 	GetPasswordByUsername(string) (string, error)
 	CreateUser(UserCreated) (int64, error)
 	GetUserUUIDByUsername(string) (string, error)
+	GetUserByUsername(string) (User, error)
 }
 
 type UserService struct {
@@ -45,4 +47,15 @@ func (us *UserService) CreateUser(newUser UserCreated) (int64, error) {
 
 func (us *UserService) GetUserUUIDByUsername(username string) (string, error) {
 	return us.userRepo.GetUserUUIDByUsername(username)
+}
+
+func (us *UserService) GetUserByUsername(username string) (User, error) {
+	user, err := us.userRepo.GetUserByUsername(username)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return User{}, ErrUserNotFound
+		}
+		return User{}, err
+	}
+	return user, nil
 }

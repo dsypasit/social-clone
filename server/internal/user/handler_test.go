@@ -3,6 +3,8 @@ package user
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -24,6 +26,10 @@ func (m *MockUserService) GetUserByUUID(string) (User, error) {
 
 func (m *MockUserService) CreateUser(UserCreated) (int64, error) {
 	return 1, m.err
+}
+
+func (m *MockUserService) GetUserByUsername(string) (User, error) {
+	return m.u, m.err
 }
 
 func TestHandlerGetUserByUUID(t *testing.T) {
@@ -191,6 +197,86 @@ func TestHandlerCreateUser(t *testing.T) {
 			json.NewDecoder(rec.Body).Decode(&response)
 			assert.Equalf(t, v.wantStatusCode, rec.Code, "want %v but got %v", v.wantStatusCode, rec.Code)
 			assert.Equalf(t, v.wantBody, response, "want %v but got %v", v.wantBody, response)
+		})
+	}
+}
+
+func TestHandlerGetUserByUsername(t *testing.T) {
+	testTable := []struct {
+		title      string
+		input      string
+		serviceErr error
+		want       UserResponse
+		wantStatus int
+	}{
+		{"should get user succesful", "ong2", nil, UserResponse{
+			UUID:     "0e11819f-e780-4129-ad06-9c5634d0f054",
+			Username: "ong2",
+			Email:    "a@gmail.com",
+		}, http.StatusOK},
+	}
+
+	for _, v := range testTable {
+		t.Run(v.title, func(t *testing.T) {
+			mService := MockUserService{
+				u: User{
+					UUID:     v.want.UUID,
+					Email:    v.want.Email,
+					Username: v.want.Username,
+				},
+				err: v.serviceErr,
+			}
+			h := NewUserHandler(&mService)
+
+			url := fmt.Sprintf("/?username=%v", v.input)
+			req, _ := http.NewRequest(http.MethodGet, url, nil)
+			rec := httptest.NewRecorder()
+
+			h.GetUserByUsername(rec, req)
+			var res UserResponse
+			json.NewDecoder(rec.Body).Decode(&res)
+			assert.Equalf(t, v.wantStatus, rec.Code, "Want %v but got %v", v.wantStatus, rec.Code)
+			assert.Equalf(t, v.want, res, "Want %v but got %v", v.want, res)
+		})
+	}
+}
+
+func TestHandlerGetUserByUsername_Error(t *testing.T) {
+	testTable := []struct {
+		title      string
+		input      string
+		serviceErr error
+		want       map[string]string
+		wantStatus int
+	}{
+		{"should invalid request", "", nil, util.BuildErrResponse("invalid request")(nil), http.StatusBadRequest},
+		{
+			"shoud service failure", "ong2", errors.New("service failed"), util.BuildErrResponse("service failure")(nil),
+			http.StatusInternalServerError,
+		},
+		{
+			"shoud user not found", "ong2", ErrUserNotFound, util.BuildErrResponse("user not found")(nil),
+			http.StatusNotFound,
+		},
+	}
+
+	for _, v := range testTable {
+		t.Run(v.title, func(t *testing.T) {
+			mService := MockUserService{
+				u:   User{},
+				err: v.serviceErr,
+			}
+			h := NewUserHandler(&mService)
+
+			url := fmt.Sprintf("/?username=%v", v.input)
+			req, _ := http.NewRequest(http.MethodGet, url, nil)
+			rec := httptest.NewRecorder()
+
+			h.GetUserByUsername(rec, req)
+			var res map[string]string
+			json.NewDecoder(rec.Body).Decode(&res)
+			assert.Equalf(t, v.wantStatus, rec.Code, "Want %v but got %v", v.wantStatus, rec.Code)
+			assert.Equalf(t, v.want["message"], res["message"], "Want %v but got %v", v.want, res)
 		})
 	}
 }

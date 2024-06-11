@@ -1,9 +1,16 @@
 package user
 
 import (
+	"net/http"
+
 	"github.com/gorilla/mux"
 )
 
-func RegisterUserRouter(router *mux.Router, userHandler *UserHandler) {
-	_ = router.PathPrefix("/user").Subrouter()
+type IUserHandler interface {
+	GetUserByUsername(w http.ResponseWriter, r *http.Request)
+}
+
+func RegisterUserRouter(router *mux.Router, userHandler IUserHandler) {
+	s := router.PathPrefix("/user").Subrouter()
+	s.HandleFunc("", userHandler.GetUserByUsername)
 }
