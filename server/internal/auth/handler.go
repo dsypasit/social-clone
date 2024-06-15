@@ -67,7 +67,7 @@ func (h *AuthHandler) Signup(w http.ResponseWriter, r *http.Request) {
 		util.SendJson(w, map[string]string{"message": "invalid structure format"}, http.StatusBadRequest)
 		return
 	}
-	if newUser.Username == "" || newUser.Password == "" || !util.ValidateEmail(newUser.Email) {
+	if newUser.Username == "" || newUser.Password == "" || !util.IsValidEmail(newUser.Email) {
 		util.SendJson(w, map[string]string{"message": "username or password empty or invalid email format"}, http.StatusBadRequest)
 		return
 	}

@@ -39,7 +39,7 @@ func (ur *UserRepository) GetUserByUsername(username string) (User, error) {
 
 func (ur *UserRepository) GetUserByUUID(username string) (User, error) {
 	var u User
-	err := ur.db.QueryRow("SELECT id, uuid, username, email, updated_at FROM app_user WHERE uuid = $1 AND deleted_at is NULL", username).
+	err := ur.db.QueryRow("SELECT id, uuid, username, email, updated_at FROM app_user WHERE uuid = $1 AND delete_at is NULL", username).
 		Scan(&u.ID, &u.UUID, &u.Username, &u.Email, &u.CreatedAt)
 	if err != nil && err != sql.ErrNoRows {
 		return User{}, err

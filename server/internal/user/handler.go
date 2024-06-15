@@ -53,7 +53,7 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	errResponse := util.BuildErrResponse("Failed to create user")
-	if !util.ValidateEmail(newUser.Email) {
+	if !util.IsValidEmail(newUser.Email) {
 		util.SendJson(w, errResponse(errors.New("invalid email format")), http.StatusBadRequest)
 		return
 	}

@@ -34,7 +34,7 @@ func (us *UserService) GetPasswordByUsername(username string) (string, error) {
 
 func (us *UserService) CreateUser(newUser UserCreated) (int64, error) {
 	var err error
-	if !util.ValidateEmail(newUser.Email) {
+	if !util.IsValidEmail(newUser.Email) {
 		return 0, errors.New("invalid email")
 	}
 	newUser.UUID = uuid.New().String()

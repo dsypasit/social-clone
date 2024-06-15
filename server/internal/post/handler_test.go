@@ -125,10 +125,10 @@ func TestHandlerGetPostByUserUUID(t *testing.T) {
 			"should return post", "4a1ec88b-380e-4dc4-bba8-a88e85dc6663",
 			[]PostResponse{
 				{
-					UUID:             "0ee1abd0-a330-488d-b170-b33f58dd6178",
-					Content:          "hello",
+					UUID:             util.Ptr("0ee1abd0-a330-488d-b170-b33f58dd6178"),
+					Content:          util.Ptr("hello"),
 					NumLike:          10,
-					UserUUID:         "4a1ec88b-380e-4dc4-bba8-a88e85dc6663",
+					UserUUID:         util.Ptr("4a1ec88b-380e-util.4dc4-bba8-a88e85dc6663"),
 					VisibilityTypeId: 1,
 				},
 			},

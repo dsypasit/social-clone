@@ -4,8 +4,16 @@ import (
 	"database/sql"
 	"testing"
 
+	"github.com/dsypasit/social-clone/server/internal/share/util"
+	"github.com/dsypasit/social-clone/server/internal/user"
 	"github.com/stretchr/testify/assert"
 )
+
+type MockUserSrv struct{}
+
+func (m *MockUserSrv) GetUserByUUID(s string) (user.User, error) {
+	return user.User{}, nil
+}
 
 type MockRepo struct {
 	repoErr error
@@ -43,7 +51,9 @@ func TestServiceCreatePost(t *testing.T) {
 	for _, v := range testTable {
 		t.Run(v.title, func(t *testing.T) {
 			m := MockRepo{nil, nil}
-			s := NewPostService(&m)
+			mu := MockUserSrv{}
+
+			s := NewPostService(&m, &mu)
 			id, err := s.CreatePost(v.input)
 			assert.Equalf(t, v.wantErr, err, "Unexpected error: %v", err)
 			assert.Equalf(t, v.wantId, id, "Want %v but got %v", v.wantId, id)
@@ -63,10 +73,10 @@ func TestServiceGetPostByUserUUID(t *testing.T) {
 			"Should return []post response", nil, "ea151663-aad6-45b2-808b-e3f160956612",
 			[]PostResponse{
 				{
-					UUID:             "c27e224d-b0af-4a45-8da8-8c5da69c5b03",
-					Content:          "Hello1",
+					UUID:             util.Ptr("c27e224d-b0af-4a45-8da8-8c5da69c5b03"),
+					Content:          util.Ptr("Hello1"),
 					NumLike:          12,
-					UserUUID:         "ea151663-aad6-45b2-808b-e3f160956612",
+					UserUUID:         util.Ptr("ea151663-aad6-45b2-808b-e3f160956612"),
 					VisibilityTypeId: 1,
 				},
 			},
@@ -81,7 +91,7 @@ func TestServiceGetPostByUserUUID(t *testing.T) {
 	for _, v := range testTable {
 		t.Run(v.title, func(t *testing.T) {
 			m := MockRepo{v.mErr, v.wantPost}
-			s := NewPostService(&m)
+			s := NewPostService(&m, &MockUserSrv{})
 			_, err := s.GetPostsByUserUUID(v.input)
 			assert.Equalf(t, v.wantErr, err, "Unexpected error: %v", err)
 		})

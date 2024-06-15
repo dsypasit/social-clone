@@ -2,9 +2,17 @@ package post
 
 import (
 	"database/sql"
+	"errors"
 
+	"github.com/dsypasit/social-clone/server/internal/user"
 	"github.com/google/uuid"
 )
+
+var ErrUserNotFound = errors.New("user not found")
+
+type IUserServiceForPost interface {
+	GetUserByUUID(s string) (user.User, error)
+}
 
 type IPostRepository interface {
 	CreatePost(PostCreated) (int64, error)
@@ -12,19 +20,28 @@ type IPostRepository interface {
 }
 
 type PostService struct {
-	postRepo IPostRepository
+	postRepo    IPostRepository
+	userService IUserServiceForPost
 }
 
-func NewPostService(postRepo IPostRepository) *PostService {
-	return &PostService{postRepo}
+func NewPostService(postRepo IPostRepository, userService IUserServiceForPost) *PostService {
+	return &PostService{postRepo, userService}
 }
 
 func (s *PostService) CreatePost(p PostCreated) (int64, error) {
+	_, err := s.userService.GetUserByUUID(p.UserUUID)
+	if err == user.ErrUserNotFound {
+		return 0, ErrUserNotFound
+	}
 	p.UUID = uuid.NewString()
 	return s.postRepo.CreatePost(p)
 }
 
 func (s *PostService) GetPostsByUserUUID(userUUID string) ([]PostResponse, error) {
+	_, err := s.userService.GetUserByUUID(userUUID)
+	if err == user.ErrUserNotFound {
+		return nil, ErrNoRows
+	}
 	posts, err := s.postRepo.GetPostsByUserUUID(userUUID)
 	if err == sql.ErrNoRows {
 		return nil, ErrNoRows

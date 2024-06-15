@@ -28,14 +28,17 @@ func (r *PostRepository) CreatePost(p PostCreated) (int64, error) {
 
 func (r *PostRepository) GetPostsByUserUUID(userUUID string) ([]PostResponse, error) {
 	query := `
-  SELECT p.uuid, p.content, p.num_like, p.visibility_type_id,
-  u.uuid FROM post as p
-  LEFT JOIN app_user as u ON u.id == p.app_user_id
+  SELECT p.uuid, p.content, p.num_like, p.visibility_type_id, u.uuid
+  FROM post as p
+  LEFT JOIN app_user AS u ON u.id = p.app_user_id
   WHERE u.uuid=$1
   `
 
 	var posts []PostResponse
 	rows, err := r.db.Query(query, userUUID)
+	if err != nil {
+		return nil, err
+	}
 
 	for rows.Next() {
 		var post PostResponse

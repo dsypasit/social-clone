@@ -11,6 +11,7 @@ import (
 var (
 	ErrNoRows         = errors.New("no posts")
 	ErrInCompleteInfo = errors.New("incomplete information")
+	ErrInvalidUUID    = errors.New("invalid uuid format")
 )
 
 type IPostService interface {
@@ -39,6 +40,11 @@ func (h *PostHandler) CreatePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !util.IsValidUUID(newPost.UserUUID) {
+		util.SendJson(w, errInvalidReq(ErrInCompleteInfo), http.StatusBadRequest)
+		return
+	}
+
 	_, err := h.postService.CreatePost(newPost)
 	if err != nil {
 		errServicErr := util.BuildErrResponse("service error")
@@ -54,6 +60,11 @@ func (h *PostHandler) GetPostsByUserUUID(w http.ResponseWriter, r *http.Request)
 	userUUID := r.URL.Query().Get("useruuid")
 	errInvalidReq := util.BuildErrResponse("invalid request")
 	if userUUID == "" {
+		util.SendJson(w, errInvalidReq(ErrInCompleteInfo), http.StatusBadRequest)
+		return
+	}
+
+	if !util.IsValidUUID(userUUID) {
 		util.SendJson(w, errInvalidReq(ErrInCompleteInfo), http.StatusBadRequest)
 		return
 	}

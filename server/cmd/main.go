@@ -32,7 +32,7 @@ func main() {
 	usrSrv := user.NewUserService(usrRepo)
 	jwtSrv := auth.NewJwtService("test")
 	authSrv := auth.NewAuthService(usrSrv, jwtSrv)
-	postSrv := post.NewPostService(postRepo)
+	postSrv := post.NewPostService(postRepo, usrSrv)
 
 	usrHandler := user.NewUserHandler(usrSrv)
 	authHandler := auth.NewAuthHandler(authSrv)

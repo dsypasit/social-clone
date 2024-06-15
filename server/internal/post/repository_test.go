@@ -1,9 +1,11 @@
 package post
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/dsypasit/social-clone/server/internal/share/util"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -52,11 +54,11 @@ func TestGetPostByUserUUID(t *testing.T) {
 			"f6630558-b800-48ff-9a09-5863d6055154",
 			[]PostResponse{
 				{
-					UUID:             "f307d2db-d2ea-4ec9-8d31-27b7443d7c72",
-					Content:          "Hello",
+					UUID:             util.Ptr("f307d2db-d2ea-4ec9-8d31-27b7443d7c72"),
+					Content:          util.Ptr("Hello"),
 					NumLike:          0,
 					VisibilityTypeId: 1,
-					UserUUID:         "f6630558-b800-48ff-9a09-5863d6055154",
+					UserUUID:         util.Ptr("f6630558-b800-48ff-9a09-5863d6055154"),
 				},
 			},
 			nil,
@@ -68,6 +70,34 @@ func TestGetPostByUserUUID(t *testing.T) {
 			db, mock, _ := sqlmock.New()
 			mock.ExpectQuery("SELECT").WillReturnRows(sqlmock.NewRows([]string{"uuid", "content", "num_like", "visibility_type_id", "uuid"}).
 				AddRow(v.wantPost[0].UUID, v.wantPost[0].Content, v.wantPost[0].NumLike, v.wantPost[0].VisibilityTypeId, v.wantPost[0].UserUUID))
+
+			postRepo := NewPostRepository(db)
+			posts, err := postRepo.GetPostsByUserUUID(v.userUUID)
+			assert.Equalf(t, v.wantErr, err, "unexpected error: %v", err)
+			assert.Equalf(t, v.wantPost, posts, "Want %v but got %v", v.wantPost, posts)
+		})
+	}
+}
+
+func TestGetPostByUserUUID_SQL_ERR(t *testing.T) {
+	testTable := []struct {
+		title    string
+		userUUID string
+		wantPost []PostResponse
+		wantErr  error
+	}{
+		{
+			"create success",
+			"f6630558-b800-48ff-9a09-5863d6055154",
+			nil,
+			errors.New("some errors"),
+		},
+	}
+
+	for _, v := range testTable {
+		t.Run(v.title, func(t *testing.T) {
+			db, mock, _ := sqlmock.New()
+			mock.ExpectQuery("SELECT").WillReturnError(errors.New("some errors"))
 
 			postRepo := NewPostRepository(db)
 			posts, err := postRepo.GetPostsByUserUUID(v.userUUID)
