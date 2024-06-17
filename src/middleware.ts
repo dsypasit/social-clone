@@ -35,7 +35,7 @@ export default async function middleware(request: NextRequest) {
     }
     console.error("Error validating token:", err);
     // Consider redirecting to an error page or displaying an appropriate message
-    return NextResponse.next(); // Potentially allow access or redirect based on error handling strategy
+    return NextResponse.redirect(new URL("/login", request.url));
   }
 
   // Token is valid, allow request to proceed
