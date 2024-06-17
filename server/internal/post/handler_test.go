@@ -27,6 +27,10 @@ func (m *mService) GetPostsByUserUUID(string) ([]PostResponse, error) {
 	return m.postsResp, m.isErr
 }
 
+func (m *mService) GetPosts() ([]PostResponse, error) {
+	return m.postsResp, m.isErr
+}
+
 func TestHandlerCreatePost(t *testing.T) {
 	post, _ := json.Marshal(PostCreated{
 		Content: "hello", UserUUID: "1eb64cd3-03ef-4ac7-9008-e0ab63f4105f",
@@ -172,11 +176,6 @@ func TestHandlerGetPostByUserUUID_Invalid(t *testing.T) {
 		wantStatus int
 	}{
 		{
-			"should return bad request cause missing uuid", "", nil,
-			util.BuildErrResponse("invalid request")(nil),
-			http.StatusBadRequest,
-		},
-		{
 			"should return bad request cause service error", "9329518b-4d55-4665-b640-b95261d2b204", errors.New("service error"),
 			util.BuildErrResponse("service failed")(nil),
 			http.StatusInternalServerError,
@@ -201,6 +200,49 @@ func TestHandlerGetPostByUserUUID_Invalid(t *testing.T) {
 			json.NewDecoder(rec.Body).Decode(&res)
 			assert.Equalf(t, v.wantStatus, rec.Code, "want %v but got %v", v.wantStatus, rec.Code)
 			assert.Equalf(t, v.want["message"], res["message"], "want %v but got %v", v.want, res)
+		})
+	}
+}
+
+func TestHandlerGetPost(t *testing.T) {
+	testTable := []struct {
+		title      string
+		want       []PostResponse
+		wantStatus int
+	}{
+		{
+			"should return post",
+			[]PostResponse{
+				{
+					UUID:             util.Ptr("0ee1abd0-a330-488d-b170-b33f58dd6178"),
+					Content:          util.Ptr("hello"),
+					NumLike:          10,
+					UserUUID:         util.Ptr("4a1ec88b-380e-util.4dc4-bba8-a88e85dc6663"),
+					VisibilityTypeId: 1,
+				},
+			},
+			http.StatusOK,
+		},
+	}
+
+	for _, v := range testTable {
+		t.Run(v.title, func(t *testing.T) {
+			ms := mService{v.want, nil}
+			h := NewPostHandler(&ms)
+
+			url := fmt.Sprintf("")
+			req, _ := http.NewRequest(http.MethodGet, url, nil)
+			ctx := context.WithValue(req.Context(), "userUUID", "7a053eee-a70d-442c-81ba-c36d72d3f87b")
+			req = req.WithContext(ctx)
+
+			rec := httptest.NewRecorder()
+
+			h.GetPostsByUserUUID(rec, req)
+
+			var res []PostResponse
+			json.NewDecoder(rec.Body).Decode(&res)
+			assert.Equalf(t, v.wantStatus, rec.Code, "want %v but got %v", v.wantStatus, rec.Code)
+			assert.Equalf(t, v.want, res, "want %v but got %v", v.want, res)
 		})
 	}
 }

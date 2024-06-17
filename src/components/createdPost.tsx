@@ -1,10 +1,15 @@
 import { Loader2, UserRound } from "lucide-react";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
-import { ReactEventHandler, useState } from "react";
+import { FC, ReactEventHandler, useState } from "react";
 import apiClient from "@/lib/apiClient";
+import { IPost } from "@/types/types";
 
-export const CreatedPost = () => {
+interface ICreatePost {
+  updatePosts: (newPost: IPost[]) => void;
+}
+
+export const CreatedPost: FC<ICreatePost> = ({ updatePosts }) => {
   const [value, setValue] = useState("");
   const [isLoading, setIsLoading] = useState(false); // State for button loading indicator
   const [error, setError] = useState(""); // State for error handling
@@ -28,7 +33,8 @@ export const CreatedPost = () => {
         visibility_type_id: 1,
         user_uuid: "549e9b06-4792-4b45-8ce8-63b7b93be7a7",
       }); // Send POST request
-      console.log("Post created successfully:", response.data); // Log response for debugging
+      const responsePost = await apiClient.get("/post"); // Send GET request to /posts
+      updatePosts(responsePost.data); // Update state with fetched posts
 
       // Handle successful post creation (e.g., clear form, show success message)
       setValue("");

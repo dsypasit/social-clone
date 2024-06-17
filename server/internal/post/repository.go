@@ -28,10 +28,11 @@ func (r *PostRepository) CreatePost(p PostCreated) (int64, error) {
 
 func (r *PostRepository) GetPostsByUserUUID(userUUID string) ([]PostResponse, error) {
 	query := `
-  SELECT p.uuid, p.content, p.num_like, p.visibility_type_id, u.uuid
+  SELECT p.uuid, p.content, p.num_like, p.visibility_type_id, u.uuid, u.username, u.updated_at
   FROM post as p
   LEFT JOIN app_user AS u ON u.id = p.app_user_id
   WHERE u.uuid=$1
+  ORDER BY u.updated_at DESC
   `
 
 	var posts []PostResponse
@@ -42,7 +43,33 @@ func (r *PostRepository) GetPostsByUserUUID(userUUID string) ([]PostResponse, er
 
 	for rows.Next() {
 		var post PostResponse
-		err := rows.Scan(&post.UUID, &post.Content, &post.NumLike, &post.VisibilityTypeId, &post.UserUUID)
+		err := rows.Scan(&post.UUID, &post.Content, &post.NumLike, &post.VisibilityTypeId, &post.UserUUID, &post.Username, &post.UpdateAt)
+		if err != nil {
+			return posts, err
+		}
+		posts = append(posts, post)
+	}
+
+	return posts, err
+}
+
+func (r *PostRepository) GetPosts() ([]PostResponse, error) {
+	query := `
+  SELECT p.uuid, p.content, p.num_like, p.visibility_type_id, u.uuid, u.username, u.updated_at
+  FROM post as p
+  LEFT JOIN app_user AS u ON u.id = p.app_user_id
+  ORDER BY u.updated_at DESC
+  `
+
+	var posts []PostResponse
+	rows, err := r.db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		var post PostResponse
+		err := rows.Scan(&post.UUID, &post.Content, &post.NumLike, &post.VisibilityTypeId, &post.UserUUID, &post.Username, &post.UpdateAt)
 		if err != nil {
 			return posts, err
 		}

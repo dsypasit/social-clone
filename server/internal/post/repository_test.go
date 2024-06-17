@@ -59,6 +59,7 @@ func TestGetPostByUserUUID(t *testing.T) {
 					NumLike:          0,
 					VisibilityTypeId: 1,
 					UserUUID:         util.Ptr("f6630558-b800-48ff-9a09-5863d6055154"),
+					Username:         util.Ptr("ronaldo"),
 				},
 			},
 			nil,
@@ -68,8 +69,8 @@ func TestGetPostByUserUUID(t *testing.T) {
 	for _, v := range testTable {
 		t.Run(v.title, func(t *testing.T) {
 			db, mock, _ := sqlmock.New()
-			mock.ExpectQuery("SELECT").WillReturnRows(sqlmock.NewRows([]string{"uuid", "content", "num_like", "visibility_type_id", "uuid"}).
-				AddRow(v.wantPost[0].UUID, v.wantPost[0].Content, v.wantPost[0].NumLike, v.wantPost[0].VisibilityTypeId, v.wantPost[0].UserUUID))
+			mock.ExpectQuery("SELECT").WillReturnRows(sqlmock.NewRows([]string{"uuid", "content", "num_like", "visibility_type_id", "uuid", "username"}).
+				AddRow(v.wantPost[0].UUID, v.wantPost[0].Content, v.wantPost[0].NumLike, v.wantPost[0].VisibilityTypeId, v.wantPost[0].UserUUID, v.wantPost[0].Username))
 
 			postRepo := NewPostRepository(db)
 			posts, err := postRepo.GetPostsByUserUUID(v.userUUID)
@@ -101,6 +102,44 @@ func TestGetPostByUserUUID_SQL_ERR(t *testing.T) {
 
 			postRepo := NewPostRepository(db)
 			posts, err := postRepo.GetPostsByUserUUID(v.userUUID)
+			assert.Equalf(t, v.wantErr, err, "unexpected error: %v", err)
+			assert.Equalf(t, v.wantPost, posts, "Want %v but got %v", v.wantPost, posts)
+		})
+	}
+}
+
+func TestGetPosts(t *testing.T) {
+	testTable := []struct {
+		title    string
+		userUUID string
+		wantPost []PostResponse
+		wantErr  error
+	}{
+		{
+			"create success",
+			"f6630558-b800-48ff-9a09-5863d6055154",
+			[]PostResponse{
+				{
+					UUID:             util.Ptr("f307d2db-d2ea-4ec9-8d31-27b7443d7c72"),
+					Content:          util.Ptr("Hello"),
+					NumLike:          0,
+					VisibilityTypeId: 1,
+					UserUUID:         util.Ptr("f6630558-b800-48ff-9a09-5863d6055154"),
+					Username:         util.Ptr("ronaldo"),
+				},
+			},
+			nil,
+		},
+	}
+
+	for _, v := range testTable {
+		t.Run(v.title, func(t *testing.T) {
+			db, mock, _ := sqlmock.New()
+			mock.ExpectQuery("SELECT").WillReturnRows(sqlmock.NewRows([]string{"uuid", "content", "num_like", "visibility_type_id", "uuid", "username"}).
+				AddRow(v.wantPost[0].UUID, v.wantPost[0].Content, v.wantPost[0].NumLike, v.wantPost[0].VisibilityTypeId, v.wantPost[0].UserUUID, v.wantPost[0].Username))
+
+			postRepo := NewPostRepository(db)
+			posts, err := postRepo.GetPosts()
 			assert.Equalf(t, v.wantErr, err, "unexpected error: %v", err)
 			assert.Equalf(t, v.wantPost, posts, "Want %v but got %v", v.wantPost, posts)
 		})

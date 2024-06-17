@@ -34,6 +34,13 @@ func (m *MockRepo) GetPostsByUserUUID(string) ([]PostResponse, error) {
 	return m.postRes, nil
 }
 
+func (m *MockRepo) GetPosts() ([]PostResponse, error) {
+	if m.repoErr != nil {
+		return []PostResponse{}, m.repoErr
+	}
+	return m.postRes, nil
+}
+
 func TestServiceCreatePost(t *testing.T) {
 	testTable := []struct {
 		title   string
@@ -93,6 +100,43 @@ func TestServiceGetPostByUserUUID(t *testing.T) {
 			m := MockRepo{v.mErr, v.wantPost}
 			s := NewPostService(&m, &MockUserSrv{})
 			_, err := s.GetPostsByUserUUID(v.input)
+			assert.Equalf(t, v.wantErr, err, "Unexpected error: %v", err)
+		})
+	}
+}
+
+func TestServiceGetPost(t *testing.T) {
+	testTable := []struct {
+		title    string
+		mErr     error
+		input    string
+		wantPost []PostResponse
+		wantErr  error
+	}{
+		{
+			"Should return []post response", nil, "ea151663-aad6-45b2-808b-e3f160956612",
+			[]PostResponse{
+				{
+					UUID:             util.Ptr("c27e224d-b0af-4a45-8da8-8c5da69c5b03"),
+					Content:          util.Ptr("Hello1"),
+					NumLike:          12,
+					UserUUID:         util.Ptr("ea151663-aad6-45b2-808b-e3f160956612"),
+					VisibilityTypeId: 1,
+				},
+			},
+			nil,
+		}, {
+			"should return no row", sql.ErrNoRows, "ea151663-aad6-45b2-808b-e3f160956612",
+			[]PostResponse{},
+			ErrNoRows,
+		},
+	}
+
+	for _, v := range testTable {
+		t.Run(v.title, func(t *testing.T) {
+			m := MockRepo{v.mErr, v.wantPost}
+			s := NewPostService(&m, &MockUserSrv{})
+			_, err := s.GetPosts()
 			assert.Equalf(t, v.wantErr, err, "Unexpected error: %v", err)
 		})
 	}

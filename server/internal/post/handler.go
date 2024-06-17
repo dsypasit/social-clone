@@ -18,6 +18,7 @@ var (
 type IPostService interface {
 	CreatePost(p PostCreated) (int64, error)
 	GetPostsByUserUUID(string) ([]PostResponse, error)
+	GetPosts() ([]PostResponse, error)
 }
 
 type PostHandler struct {
@@ -75,12 +76,8 @@ func (h *PostHandler) CreatePost(w http.ResponseWriter, r *http.Request) {
 func (h *PostHandler) GetPostsByUserUUID(w http.ResponseWriter, r *http.Request) {
 	userUUID := r.URL.Query().Get("useruuid")
 	errInvalidReq := util.BuildErrResponse("invalid request")
-	if userUUID == "" {
-		util.SendJson(w, errInvalidReq(ErrInCompleteInfo), http.StatusBadRequest)
-		return
-	}
 
-	if !util.IsValidUUID(userUUID) {
+	if userUUID != "" && !util.IsValidUUID(userUUID) {
 		util.SendJson(w, errInvalidReq(ErrInCompleteInfo), http.StatusBadRequest)
 		return
 	}

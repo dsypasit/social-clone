@@ -17,6 +17,7 @@ type IUserServiceForPost interface {
 type IPostRepository interface {
 	CreatePost(PostCreated) (int64, error)
 	GetPostsByUserUUID(string) ([]PostResponse, error)
+	GetPosts() ([]PostResponse, error)
 }
 
 type PostService struct {
@@ -38,11 +39,27 @@ func (s *PostService) CreatePost(p PostCreated) (int64, error) {
 }
 
 func (s *PostService) GetPostsByUserUUID(userUUID string) ([]PostResponse, error) {
+	if userUUID == "" {
+		posts, err := s.postRepo.GetPosts()
+		if err == sql.ErrNoRows {
+			return nil, ErrNoRows
+		}
+		return posts, err
+	}
+
 	_, err := s.userService.GetUserByUUID(userUUID)
 	if err == user.ErrUserNotFound {
 		return nil, ErrNoRows
 	}
 	posts, err := s.postRepo.GetPostsByUserUUID(userUUID)
+	if err == sql.ErrNoRows {
+		return nil, ErrNoRows
+	}
+	return posts, err
+}
+
+func (s *PostService) GetPosts() ([]PostResponse, error) {
+	posts, err := s.postRepo.GetPosts()
 	if err == sql.ErrNoRows {
 		return nil, ErrNoRows
 	}

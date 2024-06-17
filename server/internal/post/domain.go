@@ -12,13 +12,12 @@ type Post struct {
 }
 
 type PostResponse struct {
-	ID               int     `json:"id"`
 	UUID             *string `json:"uuid"`
 	Content          *string `json:"content"`
 	NumLike          int64   `json:"num_like,omitempty"`
+	Username         *string `json:"username"`
 	UserUUID         *string `json:"user_uuid"`
 	VisibilityTypeId int     `json:"visibility_type_id"`
-	DeletedAt        *string `json:"deleted_at"`
 	UpdateAt         *string `json:"update_at"`
 }
 
