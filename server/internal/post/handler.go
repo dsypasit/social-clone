@@ -3,6 +3,7 @@ package post
 import (
 	"encoding/json"
 	"errors"
+	"log"
 	"net/http"
 
 	"github.com/dsypasit/social-clone/server/internal/share/util"
@@ -35,7 +36,22 @@ func (h *PostHandler) CreatePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if v := r.Context().Value("userUUID"); v != nil {
+		log.Println("uuid", v)
+		if userUUID, ok := v.(string); ok {
+			log.Println("assigend successful")
+			newPost.UserUUID = userUUID
+		} else {
+			util.SendJson(w, errInvalidReq(ErrInvalidUUID), http.StatusBadRequest)
+			return
+		}
+	} else {
+		util.SendJson(w, errInvalidReq(ErrInvalidUUID), http.StatusUnauthorized)
+		return
+	}
+
 	if newPost.UserUUID == "" || newPost.Content == "" || newPost.VisibilityTypeId == 0 {
+		log.Println(newPost)
 		util.SendJson(w, errInvalidReq(ErrInCompleteInfo), http.StatusBadRequest)
 		return
 	}

@@ -43,7 +43,7 @@ func main() {
 
 	user.RegisterUserRouter(router, usrHandler)
 	auth.RegisterAuthRouter(router, authHandler)
-	post.RegisterPostRouter(router, postHandler)
+	post.RegisterPostRouter(router, postHandler, jwtSrv)
 
 	router.HandleFunc("/healtcheck", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)

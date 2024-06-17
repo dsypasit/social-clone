@@ -2,6 +2,7 @@ package post
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -50,6 +51,8 @@ func TestHandlerCreatePost(t *testing.T) {
 			h := NewPostHandler(&mService)
 
 			req, _ := http.NewRequest(http.MethodGet, "/", bytes.NewReader(v.post))
+			ctx := context.WithValue(req.Context(), "userUUID", "d8ff2276-9c8c-47f3-9b98-9ac1c8413c18")
+			req = req.WithContext(ctx)
 			rec := httptest.NewRecorder()
 
 			h.CreatePost(rec, req)
@@ -102,6 +105,8 @@ func TestHandlerCreatePost_Invalid(t *testing.T) {
 			h := NewPostHandler(&mService)
 
 			req, _ := http.NewRequest(http.MethodGet, "/", bytes.NewReader(v.post))
+			ctx := context.WithValue(req.Context(), "userUUID", "1e41893e-d6a0-44e5-9dd1-9bb1949bdb0d")
+			req = req.WithContext(ctx)
 			rec := httptest.NewRecorder()
 
 			h.CreatePost(rec, req)
@@ -142,7 +147,9 @@ func TestHandlerGetPostByUserUUID(t *testing.T) {
 			h := NewPostHandler(&ms)
 
 			url := fmt.Sprintf("?useruuid=%s", v.useruuid)
-			req, _ := http.NewRequest(http.MethodPost, url, nil)
+			req, _ := http.NewRequest(http.MethodGet, url, nil)
+			ctx := context.WithValue(req.Context(), "userUUID", "7a053eee-a70d-442c-81ba-c36d72d3f87b")
+			req = req.WithContext(ctx)
 
 			rec := httptest.NewRecorder()
 
@@ -182,7 +189,9 @@ func TestHandlerGetPostByUserUUID_Invalid(t *testing.T) {
 			h := NewPostHandler(&ms)
 
 			url := fmt.Sprintf("?useruuid=%s", v.useruuid)
-			req, _ := http.NewRequest(http.MethodPost, url, nil)
+			req, _ := http.NewRequest(http.MethodGet, url, nil)
+			ctx := context.WithValue(req.Context(), "userUUID", "2d36ecaa-e321-4257-a8f0-3064446a4378")
+			req = req.WithContext(ctx)
 
 			rec := httptest.NewRecorder()
 

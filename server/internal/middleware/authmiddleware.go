@@ -1,12 +1,12 @@
-package auth
+package middleware
 
 import (
 	"context"
-	"encoding/json"
 	"net/http"
 	"strings"
 
 	"github.com/dsypasit/social-clone/server/internal/auth"
+	"github.com/dsypasit/social-clone/server/internal/share/util"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/gorilla/mux"
 )
@@ -21,21 +21,17 @@ func Middleware(jwtService auth.JwtServiceInterface, next http.Handler) http.Han
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authValue := r.Header.Get("Authorization")
 		if authValue == "" {
-			w.WriteHeader(http.StatusUnauthorized)
-
-			json.NewEncoder(w).Encode(map[string]string{
+			util.SendJson(w, map[string]string{
 				"message": "Missing authorization token",
-			})
+			}, http.StatusUnauthorized)
 			return
 		}
 
 		parts := strings.SplitN(authValue, "Bearer ", 2)
 		if len(parts) != 2 {
-			w.WriteHeader(http.StatusUnauthorized)
-
-			json.NewEncoder(w).Encode(map[string]string{
+			util.SendJson(w, map[string]string{
 				"message": "Invalid authorization format",
-			})
+			}, http.StatusUnauthorized)
 			return
 		}
 		token := parts[1]
@@ -43,19 +39,15 @@ func Middleware(jwtService auth.JwtServiceInterface, next http.Handler) http.Han
 		claim, err := jwtService.VerifyToken(token)
 		if err != nil {
 			if err == jwt.ErrTokenExpired {
-				w.WriteHeader(http.StatusUnauthorized)
-
-				json.NewEncoder(w).Encode(map[string]string{
+				util.SendJson(w, map[string]string{
 					"message": "token expired",
-				})
+				}, http.StatusUnauthorized)
 				return
 			}
 
-			w.WriteHeader(http.StatusUnauthorized)
-
-			json.NewEncoder(w).Encode(map[string]string{
+			util.SendJson(w, map[string]string{
 				"message": "Invalid authorization token",
-			})
+			}, http.StatusUnauthorized)
 			return
 		}
 
