@@ -1,5 +1,7 @@
 package post
 
+import "time"
+
 type Post struct {
 	ID               int    `json:"id"`
 	UUID             string `json:"uuid"`
@@ -12,13 +14,13 @@ type Post struct {
 }
 
 type PostResponse struct {
-	UUID             *string `json:"uuid"`
-	Content          *string `json:"content"`
-	NumLike          int64   `json:"num_like,omitempty"`
-	Username         *string `json:"username"`
-	UserUUID         *string `json:"user_uuid"`
-	VisibilityTypeId int     `json:"visibility_type_id"`
-	UpdateAt         *string `json:"update_at"`
+	UUID             *string   `json:"uuid"`
+	Content          *string   `json:"content"`
+	NumLike          int64     `json:"num_like,omitempty"`
+	Username         *string   `json:"username"`
+	UserUUID         *string   `json:"user_uuid"`
+	VisibilityTypeId int       `json:"visibility_type_id"`
+	UpdateAt         time.Time `json:"update_at"`
 }
 
 type PostCreated struct {

@@ -3,6 +3,7 @@ package post
 import (
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/dsypasit/social-clone/server/internal/share/util"
@@ -60,6 +61,7 @@ func TestGetPostByUserUUID(t *testing.T) {
 					VisibilityTypeId: 1,
 					UserUUID:         util.Ptr("f6630558-b800-48ff-9a09-5863d6055154"),
 					Username:         util.Ptr("ronaldo"),
+					UpdateAt:         time.Now(),
 				},
 			},
 			nil,
@@ -69,8 +71,8 @@ func TestGetPostByUserUUID(t *testing.T) {
 	for _, v := range testTable {
 		t.Run(v.title, func(t *testing.T) {
 			db, mock, _ := sqlmock.New()
-			mock.ExpectQuery("SELECT").WillReturnRows(sqlmock.NewRows([]string{"uuid", "content", "num_like", "visibility_type_id", "uuid", "username"}).
-				AddRow(v.wantPost[0].UUID, v.wantPost[0].Content, v.wantPost[0].NumLike, v.wantPost[0].VisibilityTypeId, v.wantPost[0].UserUUID, v.wantPost[0].Username))
+			mock.ExpectQuery("SELECT").WillReturnRows(sqlmock.NewRows([]string{"uuid", "content", "num_like", "visibility_type_id", "uuid", "username", "updated_at"}).
+				AddRow(v.wantPost[0].UUID, v.wantPost[0].Content, v.wantPost[0].NumLike, v.wantPost[0].VisibilityTypeId, v.wantPost[0].UserUUID, v.wantPost[0].Username, v.wantPost[0].UpdateAt))
 
 			postRepo := NewPostRepository(db)
 			posts, err := postRepo.GetPostsByUserUUID(v.userUUID)
@@ -126,6 +128,7 @@ func TestGetPosts(t *testing.T) {
 					VisibilityTypeId: 1,
 					UserUUID:         util.Ptr("f6630558-b800-48ff-9a09-5863d6055154"),
 					Username:         util.Ptr("ronaldo"),
+					UpdateAt:         time.Now(),
 				},
 			},
 			nil,
@@ -135,8 +138,8 @@ func TestGetPosts(t *testing.T) {
 	for _, v := range testTable {
 		t.Run(v.title, func(t *testing.T) {
 			db, mock, _ := sqlmock.New()
-			mock.ExpectQuery("SELECT").WillReturnRows(sqlmock.NewRows([]string{"uuid", "content", "num_like", "visibility_type_id", "uuid", "username"}).
-				AddRow(v.wantPost[0].UUID, v.wantPost[0].Content, v.wantPost[0].NumLike, v.wantPost[0].VisibilityTypeId, v.wantPost[0].UserUUID, v.wantPost[0].Username))
+			mock.ExpectQuery("SELECT").WillReturnRows(sqlmock.NewRows([]string{"uuid", "content", "num_like", "visibility_type_id", "uuid", "username", "updated_at"}).
+				AddRow(v.wantPost[0].UUID, v.wantPost[0].Content, v.wantPost[0].NumLike, v.wantPost[0].VisibilityTypeId, v.wantPost[0].UserUUID, v.wantPost[0].Username, v.wantPost[0].UpdateAt))
 
 			postRepo := NewPostRepository(db)
 			posts, err := postRepo.GetPosts()
